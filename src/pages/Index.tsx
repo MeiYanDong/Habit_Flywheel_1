@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2, Filter } from 'lucide-react';
+import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import HabitForm from '@/components/HabitForm';
 import { useToast } from '@/hooks/use-toast';
@@ -71,7 +71,7 @@ const Index = () => {
   const [habitFormOpen, setHabitFormOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState(null);
   const [habitFilter, setHabitFilter] = useState('active'); // 'active', 'archived', 'all'
-  const [rewardFilter, setRewardFilter] = useState('all'); // 'all', 'redeemed', 'unredeemed'
+  const [rewardFilter, setRewardFilter] = useState('redeemable'); // 'redeemable', 'redeemed', 'all'
   const { toast } = useToast();
 
   // 初始化数据
@@ -340,21 +340,36 @@ const Index = () => {
 
   // 渲染习惯管理模块
   const renderHabitsModule = () => {
-    // 根据筛选条件过滤习惯
-    const getFilteredHabits = () => {
+    // 根据筛选条件过滤和排序习惯
+    const getFilteredAndSortedHabits = () => {
+      let filtered;
       switch (habitFilter) {
         case 'active':
-          return habits.filter(h => !h.isArchived);
+          filtered = habits.filter(h => !h.isArchived);
+          break;
         case 'archived':
-          return habits.filter(h => h.isArchived);
+          filtered = habits.filter(h => h.isArchived);
+          break;
         case 'all':
-          return habits;
+          filtered = habits;
+          break;
         default:
-          return habits.filter(h => !h.isArchived);
+          filtered = habits.filter(h => !h.isArchived);
       }
+
+      // 当筛选为全部习惯时，已归档习惯排序置后
+      if (habitFilter === 'all') {
+        return filtered.sort((a, b) => {
+          if (a.isArchived && !b.isArchived) return 1;
+          if (!a.isArchived && b.isArchived) return -1;
+          return 0;
+        });
+      }
+
+      return filtered;
     };
 
-    const filteredHabits = getFilteredHabits();
+    const filteredHabits = getFilteredAndSortedHabits();
 
     return (
       <div className="space-y-6">
@@ -364,25 +379,16 @@ const Index = () => {
             <p className="text-gray-600">管理您的习惯，让每一个小目标都成为成长的动力</p>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-gray-500" />
-              <ToggleGroup 
-                type="single" 
-                value={habitFilter} 
-                onValueChange={(value) => value && setHabitFilter(value)}
-                className="border rounded-lg p-1"
-              >
-                <ToggleGroupItem value="active" className="text-sm">
-                  活跃习惯
-                </ToggleGroupItem>
-                <ToggleGroupItem value="archived" className="text-sm">
-                  已归档
-                </ToggleGroupItem>
-                <ToggleGroupItem value="all" className="text-sm">
-                  全部习惯
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
+            <Select value={habitFilter} onValueChange={setHabitFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">活跃习惯</SelectItem>
+                <SelectItem value="archived">已归档</SelectItem>
+                <SelectItem value="all">全部习惯</SelectItem>
+              </SelectContent>
+            </Select>
             <Button 
               className="bg-purple-600 hover:bg-purple-700"
               onClick={() => setHabitFormOpen(true)}
@@ -520,20 +526,41 @@ const Index = () => {
 
   // 渲染奖励管理模块
   const renderRewardsModule = () => {
-    // 根据筛选条件过滤奖励
-    const getFilteredRewards = () => {
+    // 根据筛选条件过滤和排序奖励
+    const getFilteredAndSortedRewards = () => {
+      let filtered;
       switch (rewardFilter) {
+        case 'redeemable':
+          filtered = rewards.filter(r => !r.isRedeemed && r.currentEnergy >= r.energyCost);
+          break;
         case 'redeemed':
-          return rewards.filter(r => r.isRedeemed);
-        case 'unredeemed':
-          return rewards.filter(r => !r.isRedeemed);
+          filtered = rewards.filter(r => r.isRedeemed);
+          break;
         case 'all':
+          filtered = rewards;
+          break;
         default:
-          return rewards;
+          filtered = rewards;
       }
+
+      // 当筛选为全部奖励时，可兑换奖励排在前方，已兑换奖励置后
+      if (rewardFilter === 'all') {
+        return filtered.sort((a, b) => {
+          const aCanRedeem = !a.isRedeemed && a.currentEnergy >= a.energyCost;
+          const bCanRedeem = !b.isRedeemed && b.currentEnergy >= b.energyCost;
+          
+          if (aCanRedeem && !bCanRedeem) return -1;
+          if (!aCanRedeem && bCanRedeem) return 1;
+          if (a.isRedeemed && !b.isRedeemed) return 1;
+          if (!a.isRedeemed && b.isRedeemed) return -1;
+          return 0;
+        });
+      }
+
+      return filtered;
     };
 
-    const filteredRewards = getFilteredRewards();
+    const filteredRewards = getFilteredAndSortedRewards();
 
     return (
       <div className="space-y-6">
@@ -543,25 +570,16 @@ const Index = () => {
             <p className="text-gray-600">设定目标，用能量点亮梦想</p>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-gray-500" />
-              <ToggleGroup 
-                type="single" 
-                value={rewardFilter} 
-                onValueChange={(value) => value && setRewardFilter(value)}
-                className="border rounded-lg p-1"
-              >
-                <ToggleGroupItem value="all" className="text-sm">
-                  全部奖励
-                </ToggleGroupItem>
-                <ToggleGroupItem value="unredeemed" className="text-sm">
-                  未兑换
-                </ToggleGroupItem>
-                <ToggleGroupItem value="redeemed" className="text-sm">
-                  已兑换
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
+            <Select value={rewardFilter} onValueChange={setRewardFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="redeemable">可兑换</SelectItem>
+                <SelectItem value="redeemed">已兑换</SelectItem>
+                <SelectItem value="all">全部奖励</SelectItem>
+              </SelectContent>
+            </Select>
             <Button className="bg-purple-600 hover:bg-purple-700">
               <Plus className="h-4 w-4 mr-2" />
               添加奖励
