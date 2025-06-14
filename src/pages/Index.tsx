@@ -1,11 +1,12 @@
+
 import React, { useState } from 'react';
-import { HabitList } from '@/components/HabitList';
-import { HabitForm } from '@/components/HabitForm';
-import { RewardList } from '@/components/RewardList';
-import { RewardForm } from '@/components/RewardForm';
-import { CompletionForm } from '@/components/CompletionForm';
-import { BindingForm } from '@/components/BindingForm';
-import { BindingList } from '@/components/BindingList';
+import HabitList from '@/components/HabitList';
+import HabitForm from '@/components/HabitForm';
+import RewardList from '@/components/RewardList';
+import RewardForm from '@/components/RewardForm';
+import CompletionForm from '@/components/CompletionForm';
+import BindingForm from '@/components/BindingForm';
+import BindingList from '@/components/BindingList';
 import HistoryView from '@/components/HistoryView';
 import SettingsView from '@/components/SettingsView';
 
