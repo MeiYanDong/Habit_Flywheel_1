@@ -1,19 +1,16 @@
-
 import React, { useState } from 'react';
-import HabitList from '@/components/HabitList';
-import HabitForm from '@/components/HabitForm';
-import RewardList from '@/components/RewardList';
-import RewardForm from '@/components/RewardForm';
-import CompletionForm from '@/components/CompletionForm';
-import BindingForm from '@/components/BindingForm';
-import BindingList from '@/components/BindingList';
+import { HabitList } from '@/components/HabitList';
+import { HabitForm } from '@/components/HabitForm';
+import { RewardList } from '@/components/RewardList';
+import { RewardForm } from '@/components/RewardForm';
+import { CompletionForm } from '@/components/CompletionForm';
+import { BindingForm } from '@/components/BindingForm';
+import { BindingList } from '@/components/BindingList';
 import HistoryView from '@/components/HistoryView';
 import SettingsView from '@/components/SettingsView';
 
 const IndexPage: React.FC = () => {
   const [activeView, setActiveView] = useState<'today' | 'habits' | 'rewards' | 'bindings' | 'history' | 'settings'>('today');
-  const [showHabitForm, setShowHabitForm] = useState(false);
-  const [showRewardForm, setShowRewardForm] = useState(false);
 
   // 示例数据，实际项目中应从数据库或API获取
   const [habits, setHabits] = useState([
@@ -35,29 +32,6 @@ const IndexPage: React.FC = () => {
     { id: '3', habitId: '1', date: '2024-07-25', energy: 10, timestamp: '1674567890' },
     { id: '4', habitId: '3', date: '2024-07-25', energy: 20, timestamp: '1674567890' },
   ]);
-
-  const handleHabitFormSubmit = (data: any) => {
-    const newHabit = {
-      id: Date.now().toString(),
-      name: data.name,
-      energyValue: data.energyValue,
-      isArchived: false,
-      ...data
-    };
-    setHabits(prev => [...prev, newHabit]);
-    setShowHabitForm(false);
-  };
-
-  const handleRewardFormSubmit = (data: any) => {
-    const newReward = {
-      id: Date.now().toString(),
-      name: data.name,
-      cost: data.energyCost,
-      ...data
-    };
-    setRewards(prev => [...prev, newReward]);
-    setShowRewardForm(false);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -152,40 +126,15 @@ const IndexPage: React.FC = () => {
             {activeView === 'habits' && (
               <div>
                 <h2 className="text-2xl font-semibold mb-4">习惯管理</h2>
-                <div className="mb-4">
-                  <button
-                    onClick={() => setShowHabitForm(true)}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                  >
-                    创建新习惯
-                  </button>
-                </div>
+                <HabitForm habits={habits} setHabits={setHabits} />
                 <HabitList habits={habits} setHabits={setHabits} />
-                <HabitForm
-                  isOpen={showHabitForm}
-                  onClose={() => setShowHabitForm(false)}
-                  onSubmit={handleHabitFormSubmit}
-                  rewards={rewards}
-                />
               </div>
             )}
             {activeView === 'rewards' && (
               <div>
                 <h2 className="text-2xl font-semibold mb-4">奖励管理</h2>
-                <div className="mb-4">
-                  <button
-                    onClick={() => setShowRewardForm(true)}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                  >
-                    创建新奖励
-                  </button>
-                </div>
+                <RewardForm rewards={rewards} setRewards={setRewards} />
                 <RewardList rewards={rewards} setRewards={setRewards} />
-                <RewardForm
-                  isOpen={showRewardForm}
-                  onClose={() => setShowRewardForm(false)}
-                  onSubmit={handleRewardFormSubmit}
-                />
               </div>
             )}
             {activeView === 'bindings' && (
