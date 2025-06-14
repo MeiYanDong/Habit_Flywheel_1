@@ -183,24 +183,41 @@ const HabitForm: React.FC<HabitFormProps> = ({
                 <FormItem>
                   <FormLabel>频率</FormLabel>
                   <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="flex flex-row space-x-6"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="daily" id="daily" />
-                        <Label htmlFor="daily" className="text-sm font-normal">每日</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="weekly" id="weekly" />
-                        <Label htmlFor="weekly" className="text-sm font-normal">每周</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="monthly" id="monthly" />
-                        <Label htmlFor="monthly" className="text-sm font-normal">每月</Label>
-                      </div>
-                    </RadioGroup>
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => field.onChange('daily')}
+                        className={`flex-1 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                          field.value === 'daily'
+                            ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
+                            : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400 hover:bg-purple-50'
+                        }`}
+                      >
+                        每日
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => field.onChange('weekly')}
+                        className={`flex-1 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                          field.value === 'weekly'
+                            ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
+                            : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400 hover:bg-purple-50'
+                        }`}
+                      >
+                        每周
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => field.onChange('monthly')}
+                        className={`flex-1 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                          field.value === 'monthly'
+                            ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
+                            : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400 hover:bg-purple-50'
+                        }`}
+                      >
+                        每月
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
