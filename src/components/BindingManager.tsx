@@ -188,7 +188,7 @@ const BindingManager: React.FC<BindingManagerProps> = ({
                         <div className="flex items-center space-x-3">
                           <Gift className="h-6 w-6 text-purple-600" />
                           <div>
-                            <h4 className="font-semibold text-lg text-purple-800">{reward.name}</h4>
+                            <h4 className="font-semibold text-lg text-purple-800">{ reward.name}</h4>
                             <div className="flex items-center space-x-2 mt-1">
                               <Badge className="bg-purple-100 text-purple-800 border-purple-200">
                                 需要 {reward.energyCost}⚡
@@ -225,7 +225,7 @@ const BindingManager: React.FC<BindingManagerProps> = ({
                           {reward.boundHabits.map(habit => (
                             <div 
                               key={habit.id}
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                              className="flex items-center justify-between p-3 ranking-item rounded-lg"
                             >
                               <div className="flex items-center space-x-2">
                                 <CheckCircle className="h-4 w-4 text-green-600" />
