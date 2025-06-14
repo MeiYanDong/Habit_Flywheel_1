@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -125,16 +124,16 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 px-4 md:px-0">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">历史记录</h2>
-        <p className="text-gray-600">回顾成长轨迹，数据见证努力</p>
+        <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-2">历史记录</h2>
+        <p className="text-sm md:text-base text-gray-600">回顾成长轨迹，数据见证努力</p>
       </div>
 
       {/* 筛选器 */}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
         <Select value={timeRange} onValueChange={(value: 'week' | 'month' | 'all') => setTimeRange(value)}>
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-full sm:w-32">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -145,7 +144,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
         </Select>
 
         <Select value={selectedHabit} onValueChange={setSelectedHabit}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-full sm:w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -160,63 +159,65 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
       </div>
 
       {/* 统计卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card>
-          <CardContent className="p-4 text-center">
-            <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-600" />
-            <div className="text-2xl font-bold text-gray-900">{stats.totalCompletions}</div>
-            <div className="text-sm text-gray-600">总完成次数</div>
+          <CardContent className="p-3 md:p-4 text-center">
+            <CheckCircle className="h-6 w-6 md:h-8 md:w-8 mx-auto mb-2 text-green-600" />
+            <div className="text-lg md:text-2xl font-bold text-gray-900">{stats.totalCompletions}</div>
+            <div className="text-xs md:text-sm text-gray-600">总完成次数</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
-            <Zap className="h-8 w-8 mx-auto mb-2 text-amber-500" />
-            <div className="text-2xl font-bold text-gray-900">{stats.totalEnergy}</div>
-            <div className="text-sm text-gray-600">总获得能量</div>
+          <CardContent className="p-3 md:p-4 text-center">
+            <Zap className="h-6 w-6 md:h-8 md:w-8 mx-auto mb-2 text-amber-500" />
+            <div className="text-lg md:text-2xl font-bold text-gray-900">{stats.totalEnergy}</div>
+            <div className="text-xs md:text-sm text-gray-600">总获得能量</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
-            <Calendar className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-            <div className="text-2xl font-bold text-gray-900">{stats.uniqueDays}</div>
-            <div className="text-sm text-gray-600">活跃天数</div>
+          <CardContent className="p-3 md:p-4 text-center">
+            <Calendar className="h-6 w-6 md:h-8 md:w-8 mx-auto mb-2 text-purple-600" />
+            <div className="text-lg md:text-2xl font-bold text-gray-900">{stats.uniqueDays}</div>
+            <div className="text-xs md:text-sm text-gray-600">活跃天数</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
-            <TrendingUp className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-            <div className="text-2xl font-bold text-gray-900">
+          <CardContent className="p-3 md:p-4 text-center">
+            <TrendingUp className="h-6 w-6 md:h-8 md:w-8 mx-auto mb-2 text-blue-600" />
+            <div className="text-lg md:text-2xl font-bold text-gray-900">
               {stats.uniqueDays > 0 ? Math.round(stats.totalCompletions / stats.uniqueDays * 10) / 10 : 0}
             </div>
-            <div className="text-sm text-gray-600">日均完成</div>
+            <div className="text-xs md:text-sm text-gray-600">日均完成</div>
           </CardContent>
         </Card>
       </div>
 
       {/* 折线图趋势 */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <BarChart3 className="h-5 w-5 text-purple-600" />
+        <CardHeader className="pb-3 md:pb-6">
+          <CardTitle className="flex items-center space-x-2 text-base md:text-lg">
+            <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-purple-600" />
             <span>最近7天趋势</span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px]">
-            <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+        <CardContent className="pt-0">
+          <ChartContainer config={chartConfig} className="h-[200px] md:h-[300px]">
+            <LineChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
               <XAxis 
                 dataKey="day" 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: '#6B7280' }}
+                tick={{ fontSize: 10, fill: '#6B7280' }}
+                className="md:text-xs"
               />
               <YAxis 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: '#6B7280' }}
+                tick={{ fontSize: 10, fill: '#6B7280' }}
+                className="md:text-xs"
               />
               <ChartTooltip 
                 content={<ChartTooltipContent />}
@@ -225,22 +226,22 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
                 type="monotone" 
                 dataKey="completions" 
                 stroke="var(--color-completions)"
-                strokeWidth={3}
-                dot={{ fill: 'var(--color-completions)', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: 'var(--color-completions)', strokeWidth: 2 }}
+                strokeWidth={2}
+                dot={{ fill: 'var(--color-completions)', strokeWidth: 1, r: 3 }}
+                activeDot={{ r: 4, stroke: 'var(--color-completions)', strokeWidth: 2 }}
               />
               <Line 
                 type="monotone" 
                 dataKey="energy" 
                 stroke="var(--color-energy)"
-                strokeWidth={3}
-                dot={{ fill: 'var(--color-energy)', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: 'var(--color-energy)', strokeWidth: 2 }}
-                strokeDasharray="5 5"
+                strokeWidth={2}
+                dot={{ fill: 'var(--color-energy)', strokeWidth: 1, r: 3 }}
+                activeDot={{ r: 4, stroke: 'var(--color-energy)', strokeWidth: 2 }}
+                strokeDasharray="3 3"
               />
             </LineChart>
           </ChartContainer>
-          <div className="text-center text-sm text-gray-600 mt-4">
+          <div className="text-center text-xs md:text-sm text-gray-600 mt-2 md:mt-4">
             实线表示完成次数，虚线表示获得能量
           </div>
         </CardContent>
@@ -248,11 +249,11 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
 
       {/* 习惯排行 */}
       <Card>
-        <CardHeader>
-          <CardTitle>习惯完成排行</CardTitle>
+        <CardHeader className="pb-3 md:pb-6">
+          <CardTitle className="text-base md:text-lg">习惯完成排行</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+        <CardContent className="pt-0">
+          <div className="space-y-2 md:space-y-3">
             {Object.entries(stats.habitStats)
               .sort(([,a], [,b]) => b.completions - a.completions)
               .slice(0, 5)
@@ -262,17 +263,17 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
 
                 return (
                   <div key={habitId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                    <div className="flex items-center space-x-2 md:space-x-3 flex-1 min-w-0">
+                      <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${
                         index === 0 ? 'bg-yellow-500' : 
                         index === 1 ? 'bg-gray-400' : 
                         index === 2 ? 'bg-amber-600' : 'bg-gray-300'
                       }`}>
                         {index + 1}
                       </div>
-                      <span className="font-medium">{habit.name}</span>
+                      <span className="font-medium text-sm md:text-base truncate">{habit.name}</span>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm">
+                    <div className="flex items-center space-x-3 md:space-x-4 text-xs md:text-sm flex-shrink-0">
                       <div className="text-center">
                         <div className="font-bold">{habitStat.completions}</div>
                         <div className="text-gray-500">次数</div>
