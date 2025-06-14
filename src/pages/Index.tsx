@@ -531,7 +531,7 @@ const Index = () => {
       let filtered;
       switch (rewardFilter) {
         case 'redeemable':
-          filtered = rewards.filter(r => !r.isRedeemed && r.currentEnergy >= r.energyCost);
+          filtered = rewards.filter(r => !r.isRedeemed); // 显示所有未兑换的奖励
           break;
         case 'redeemed':
           filtered = rewards.filter(r => r.isRedeemed);
