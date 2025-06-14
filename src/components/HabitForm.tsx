@@ -58,14 +58,37 @@ const HabitForm: React.FC<HabitFormProps> = ({
 }) => {
   const form = useForm<HabitFormData>({
     defaultValues: {
-      name: initialData?.name || '',
-      description: initialData?.description || '',
-      energyValue: initialData?.energyValue || 10,
-      bindingRewardId: initialData?.bindingRewardId || 'none',
-      frequency: initialData?.frequency || 'daily',
-      targetCount: initialData?.targetCount || 1,
+      name: '',
+      description: '',
+      energyValue: 10,
+      bindingRewardId: 'none',
+      frequency: 'daily',
+      targetCount: 1,
     }
   });
+
+  // 重置表单当初始数据改变时
+  React.useEffect(() => {
+    if (initialData) {
+      form.reset({
+        name: initialData.name || '',
+        description: initialData.description || '',
+        energyValue: initialData.energyValue || 10,
+        bindingRewardId: initialData.bindingRewardId || 'none',
+        frequency: initialData.frequency || 'daily',
+        targetCount: initialData.targetCount || 1,
+      });
+    } else {
+      form.reset({
+        name: '',
+        description: '',
+        energyValue: 10,
+        bindingRewardId: 'none',
+        frequency: 'daily',
+        targetCount: 1,
+      });
+    }
+  }, [initialData, form]);
 
   const handleSubmit = (data: HabitFormData) => {
     // Convert 'none' back to undefined/empty string for the API
@@ -131,6 +154,30 @@ const HabitForm: React.FC<HabitFormProps> = ({
 
             <FormField
               control={form.control}
+              name="energyValue"
+              rules={{ 
+                required: '能量值不能为空',
+                min: { value: 1, message: '能量值必须大于0' },
+                max: { value: 100, message: '能量值不能超过100' }
+              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>能量值</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      placeholder="10"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="frequency"
               render={({ field }) => (
                 <FormItem>
@@ -138,8 +185,8 @@ const HabitForm: React.FC<HabitFormProps> = ({
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-2"
+                      value={field.value}
+                      className="flex flex-row space-x-6"
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="daily" id="daily" />
@@ -190,35 +237,11 @@ const HabitForm: React.FC<HabitFormProps> = ({
 
             <FormField
               control={form.control}
-              name="energyValue"
-              rules={{ 
-                required: '能量值不能为空',
-                min: { value: 1, message: '能量值必须大于0' },
-                max: { value: 100, message: '能量值不能超过100' }
-              }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>能量值</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="10"
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="bindingRewardId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>绑定奖励（可选）</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || 'none'}>
+                  <Select onValueChange={field.onChange} value={field.value || 'none'}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="选择要绑定的奖励" />
