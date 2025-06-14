@@ -799,107 +799,128 @@ const Index = () => {
           </div>
         </div>
 
-        {filteredRewards.length === 0 ? (
-          <Card className="p-8">
-            <div className="text-center text-gray-500">
-              <Gift className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>
-                {rewardFilter === 'redeemable' && '还没有可兑换的奖励'}
-                {rewardFilter === 'redeemed' && '还没有已兑换的奖励'}
-                {rewardFilter === 'all' && '还没有任何奖励'}
-              </p>
-              <p className="text-sm mt-2">点击"添加奖励"创建您的第一个奖励吧！</p>
-            </div>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredRewards.map(reward => {
-              const progress = Math.min((reward.currentEnergy / reward.energyCost) * 100, 100);
-              const canRedeem = reward.currentEnergy >= reward.energyCost;
-              
-              return (
-                <Card key={reward.id} className={cn(
-                  "transition-all duration-200 hover:shadow-lg",
-                  canRedeem && !reward.isRedeemed && "ring-2 ring-amber-400",
-                  reward.isRedeemed && "opacity-60"
-                )}>
-                  <CardContent className="p-4">
-                    <div className="space-y-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <h3 className="font-medium text-gray-900">{reward.name}</h3>
-                            {reward.isRedeemed && (
-                              <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
-                                已兑换
-                              </Badge>
+        {/* 奖励列表 */}
+        <div>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            {rewardFilter === 'redeemable' && `可兑换奖励 (${filteredRewards.length})`}
+            {rewardFilter === 'redeemed' && `已兑换奖励 (${filteredRewards.length})`}
+            {rewardFilter === 'all' && `全部奖励 (${filteredRewards.length})`}
+          </h3>
+          
+          {filteredRewards.length === 0 ? (
+            <Card className="p-8">
+              <div className="text-center text-gray-500">
+                <Gift className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>
+                  {rewardFilter === 'redeemable' && '还没有可兑换的奖励'}
+                  {rewardFilter === 'redeemed' && '还没有已兑换的奖励'}
+                  {rewardFilter === 'all' && '还没有任何奖励'}
+                </p>
+                <p className="text-sm mt-2">点击"添加奖励"创建您的第一个奖励吧！</p>
+              </div>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredRewards.map(reward => {
+                const progress = Math.min((reward.currentEnergy / reward.energyCost) * 100, 100);
+                const canRedeem = reward.currentEnergy >= reward.energyCost;
+                
+                return (
+                  <Card key={reward.id} className={cn(
+                    "transition-all duration-200 hover:shadow-lg",
+                    canRedeem && !reward.isRedeemed && "ring-2 ring-amber-400",
+                    reward.isRedeemed && "opacity-60"
+                  )}>
+                    <CardContent className="p-4">
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <h3 className="font-medium text-gray-900">{reward.name}</h3>
+                              {reward.isRedeemed && (
+                                <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                                  已兑换
+                                </Badge>
+                              )}
+                            </div>
+                            {reward.description && (
+                              <p className="text-sm text-gray-600 mt-1">{reward.description}</p>
                             )}
                           </div>
-                          {reward.description && (
-                            <p className="text-sm text-gray-600 mt-1">{reward.description}</p>
-                          )}
+                          
+                          <div className="flex space-x-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingReward(reward);
+                                setRewardFormOpen(true);
+                              }}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => deleteReward(reward.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                         
-                        <div className="flex space-x-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setEditingReward(reward);
-                              setRewardFormOpen(true);
-                            }}
-                          >
-                            <Edit className="h-3 w-3" />
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>进度</span>
+                            <span>{Math.round(progress)}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-gradient-to-r from-purple-500 to-amber-500 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                          <div className="text-center text-sm text-gray-600">
+                            {reward.currentEnergy}/{reward.energyCost}⚡
+                          </div>
+                        </div>
+                        
+                        {reward.isRedeemed ? (
+                          <Button variant="outline" className="w-full" disabled>
+                            ✅ 已兑换
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => deleteReward(reward.id)}
+                        ) : canRedeem ? (
+                          <Button 
+                            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+                            onClick={() => redeemReward(reward.id)}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            🎉 立即兑换
                           </Button>
-                        </div>
+                        ) : (
+                          <Button variant="outline" className="w-full">
+                            🎯 继续努力
+                          </Button>
+                        )}
                       </div>
-                      
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>进度</span>
-                          <span>{Math.round(progress)}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-gradient-to-r from-purple-500 to-amber-500 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                        <div className="text-center text-sm text-gray-600">
-                          {reward.currentEnergy}/{reward.energyCost}⚡
-                        </div>
-                      </div>
-                      
-                      {reward.isRedeemed ? (
-                        <Button variant="outline" className="w-full" disabled>
-                          ✅ 已兑换
-                        </Button>
-                      ) : canRedeem ? (
-                        <Button 
-                          className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
-                          onClick={() => redeemReward(reward.id)}
-                        >
-                          🎉 立即兑换
-                        </Button>
-                      ) : (
-                        <Button variant="outline" className="w-full">
-                          🎯 继续努力
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 奖励表单对话框 */}
+        <RewardForm
+          isOpen={rewardFormOpen}
+          onClose={() => {
+            setRewardFormOpen(false);
+            setEditingReward(null);
+          }}
+          onSubmit={editingReward ? updateReward : createReward}
+          initialData={editingReward}
+          isEditing={!!editingReward}
+        />
       </div>
     );
   };
