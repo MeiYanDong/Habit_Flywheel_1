@@ -139,7 +139,9 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
+              "group/sidebar-wrapper flex w-full has-[[data-variant=inset]]:bg-sidebar",
+              // 移动设备时使用flex-col，桌面设备时使用默认的flex-row
+              isMobile ? "min-h-svh flex-col" : "min-h-svh",
               className
             )}
             ref={ref}
@@ -179,7 +181,9 @@ const Sidebar = React.forwardRef<
       return (
         <div
           className={cn(
-            "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
+            isMobile 
+              ? "flex h-16 w-full flex-row bg-sidebar text-sidebar-foreground border-t"
+              : "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
             className
           )}
           ref={ref}
@@ -192,21 +196,20 @@ const Sidebar = React.forwardRef<
 
     if (isMobile) {
       return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-          <SheetContent
-            data-sidebar="sidebar"
-            data-mobile="true"
-            className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-            style={
-              {
-                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-              } as React.CSSProperties
-            }
-            side={side}
-          >
-            <div className="flex h-full w-full flex-col">{children}</div>
-          </SheetContent>
-        </Sheet>
+        <div
+          ref={ref}
+          className={cn(
+            "fixed bottom-0 left-0 right-0 z-50 flex h-16 w-full bg-sidebar text-sidebar-foreground border-t",
+            className
+          )}
+          data-sidebar="sidebar"
+          data-mobile="true"
+          {...props}
+        >
+          <div className="flex h-full w-full flex-row items-center justify-around px-2">
+            {children}
+          </div>
+        </div>
       )
     }
 
@@ -316,11 +319,15 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
+  const { isMobile } = useSidebar()
+  
   return (
     <main
       ref={ref}
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background",
+        // 移动设备时底部留出导航栏空间
+        isMobile ? "pb-16" : "",
         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
         className
       )}
@@ -397,12 +404,16 @@ const SidebarContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
+  const { isMobile } = useSidebar()
+  
   return (
     <div
       ref={ref}
       data-sidebar="content"
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        isMobile 
+          ? "flex min-h-0 flex-1 flex-row gap-2 overflow-auto"
+          : "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
         className
       )}
       {...props}
@@ -415,11 +426,18 @@ const SidebarGroup = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
+  const { isMobile } = useSidebar()
+  
   return (
     <div
       ref={ref}
       data-sidebar="group"
-      className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
+      className={cn(
+        isMobile 
+          ? "relative flex w-full min-w-0 flex-row p-1"
+          : "relative flex w-full min-w-0 flex-col p-2",
+        className
+      )}
       {...props}
     />
   )
@@ -431,6 +449,7 @@ const SidebarGroupLabel = React.forwardRef<
   React.ComponentProps<"div"> & { asChild?: boolean }
 >(({ className, asChild = false, ...props }, ref) => {
   const Comp = asChild ? Slot : "div"
+  const { isMobile } = useSidebar()
 
   return (
     <Comp
@@ -438,7 +457,8 @@ const SidebarGroupLabel = React.forwardRef<
       data-sidebar="group-label"
       className={cn(
         "duration-200 flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 outline-none ring-sidebar-ring transition-[margin,opa] ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
-        "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0",
+        // 移动设备时隐藏标签
+        isMobile ? "hidden" : "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0",
         className
       )}
       {...props}
@@ -486,14 +506,23 @@ SidebarGroupContent.displayName = "SidebarGroupContent"
 const SidebarMenu = React.forwardRef<
   HTMLUListElement,
   React.ComponentProps<"ul">
->(({ className, ...props }, ref) => (
-  <ul
-    ref={ref}
-    data-sidebar="menu"
-    className={cn("flex w-full min-w-0 flex-col gap-1", className)}
-    {...props}
-  />
-))
+>(({ className, ...props }, ref) => {
+  const { isMobile } = useSidebar()
+  
+  return (
+    <ul
+      ref={ref}
+      data-sidebar="menu"
+      className={cn(
+        isMobile 
+          ? "flex w-full min-w-0 flex-row gap-1 justify-around"
+          : "flex w-full min-w-0 flex-col gap-1",
+        className
+      )}
+      {...props}
+    />
+  )
+})
 SidebarMenu.displayName = "SidebarMenu"
 
 const SidebarMenuItem = React.forwardRef<
@@ -560,7 +589,12 @@ const SidebarMenuButton = React.forwardRef<
         data-sidebar="menu-button"
         data-size={size}
         data-active={isActive}
-        className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        className={cn(
+          sidebarMenuButtonVariants({ variant, size }), 
+          // 移动设备时调整按钮样式
+          isMobile ? "flex-col justify-center items-center gap-1 h-12 px-1 text-xs" : "",
+          className
+        )}
         {...props}
       />
     )
