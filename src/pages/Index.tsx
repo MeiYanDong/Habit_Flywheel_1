@@ -604,8 +604,8 @@ const Index = () => {
             
             const getFrequencyText = () => {
               if (!habit.frequency || habit.frequency === 'daily') return '每日';
-              if (habit.frequency === 'weekly') return `每周 ${habit.targetCount || 1} 次`;
-              if (habit.frequency === 'monthly') return `每月 ${habit.targetCount || 1} 次`;
+              if (habit.frequency === 'weekly') return `每周 ${habit.targetCount || 1} 次 (${currentProgress}/${targetCount})`;
+              if (habit.frequency === 'monthly') return `每月 ${habit.targetCount || 1} 次 (${currentProgress}/${targetCount})`;
               return '每日';
             };
             
@@ -622,12 +622,6 @@ const Index = () => {
                       <Zap className="h-4 w-4 text-amber-500" />
                       <span className="text-sm text-gray-600 dark:text-gray-400">+{habit.energyValue}</span>
                     </div>
-                    
-                    {habit.frequency !== 'daily' && (
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        进度: {currentProgress}/{targetCount}
-                      </div>
-                    )}
                     
                     {isCompleted ? (
                       <Badge className="bg-green-100 text-green-800 border-green-200 dark:bg-green-800 dark:text-green-100">
@@ -748,8 +742,8 @@ const Index = () => {
                 
                 const getFrequencyText = () => {
                   if (!habit.frequency || habit.frequency === 'daily') return '每日';
-                  if (habit.frequency === 'weekly') return `每周 ${habit.targetCount || 1} 次`;
-                  if (habit.frequency === 'monthly') return `每月 ${habit.targetCount || 1} 次`;
+                  if (habit.frequency === 'weekly') return `每周 ${habit.targetCount || 1} 次 (${currentProgress}/${targetCount})`;
+                  if (habit.frequency === 'monthly') return `每月 ${habit.targetCount || 1} 次 (${currentProgress}/${targetCount})`;
                   return '每日';
                 };
                 
@@ -783,11 +777,6 @@ const Index = () => {
                                 </Badge>
                               )}
                             </div>
-                            {habit.frequency !== 'daily' && !habit.isArchived && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                本周期进度: {currentProgress}/{targetCount}
-                              </div>
-                            )}
                           </div>
                           
                           <div className="flex space-x-1">
