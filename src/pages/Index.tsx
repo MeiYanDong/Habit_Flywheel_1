@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,13 +69,19 @@ class DataManager {
     if (frequency === 'daily') {
       return this.isHabitCompletedToday(habitId) ? 1 : 0;
     } else if (frequency === 'weekly') {
-      // 获取本周开始日期（周一）
+      // 获取本周开始日期（周一）- 修复日期计算
       const dayOfWeek = now.getDay();
       const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-      startDate = new Date(now.setDate(diff));
+      startDate = new Date(now.getFullYear(), now.getMonth(), diff);
     } else if (frequency === 'monthly') {
       // 获取本月开始日期
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    
+    // 确保 startDate 存在且有效
+    if (!startDate || isNaN(startDate.getTime())) {
+      console.error('Invalid startDate calculated for habit:', habitId, 'frequency:', frequency);
+      return 0;
     }
     
     const startDateStr = startDate.toISOString().split('T')[0];
