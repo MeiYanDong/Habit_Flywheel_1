@@ -1,83 +1,97 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+/* V2.7 苹果设计风格 - 紫金黑主题 */
 
 @layer base {
   :root {
+    /* 主色调 */
+    --primary-purple: 124 58 237;      /* #7C3AED */
+    --primary-gold: 245 158 11;        /* #F59E0B */
+    --primary-dark: 31 41 55;          /* #1F2937 */
+
+    /* 辅助色调 */
+    --purple-light: 167 139 250;       /* #A78BFA */
+    --purple-dark: 91 33 182;          /* #5B21B6 */
+    --gold-light: 251 191 36;          /* #FBBF24 */
+    --gold-dark: 217 119 6;            /* #D97706 */
+
+    /* 功能色调 */
+    --success: 16 185 129;             /* #10B981 */
+    --warning: 245 158 11;             /* #F59E0B */
+    --error: 239 68 68;                /* #EF4444 */
+    --info: 59 130 246;                /* #3B82F6 */
+
+    /* 背景和前景 */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
+    /* 卡片 */
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
 
+    /* 弹出层 */
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    /* 主要颜色 */
+    --primary: var(--primary-purple);
     --primary-foreground: 210 40% 98%;
 
+    /* 次要颜色 */
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
+    /* 静默色 */
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
+    /* 强调色 */
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
+    /* 破坏性 */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
+    /* 边框和输入 */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: var(--primary-purple);
 
-    --radius: 0.5rem;
+    /* 圆角 */
+    --radius: 0.75rem;
 
+    /* 边栏 */
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
@@ -96,8 +110,220 @@
   * {
     @apply border-border;
   }
-
+  
   body {
     @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
+
+  /* 苹果风格的滚动条 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+@layer components {
+  /* 习惯卡片样式 */
+  .habit-card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  .habit-card.completed {
+    @apply bg-green-50 border-green-200;
+  }
+
+  /* 奖励卡片样式 */
+  .reward-card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  .reward-card.redeemable {
+    @apply ring-2 ring-amber-400 ring-opacity-50;
+  }
+
+  /* 进度条样式 */
+  .progress-bar {
+    @apply w-full bg-gray-200 rounded-full h-2 overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply bg-gradient-to-r from-purple-500 to-amber-500 h-full rounded-full transition-all duration-500 ease-out;
+  }
+
+  /* 能量图标动画 */
+  .energy-icon {
+    @apply inline-block;
+    animation: pulse-energy 2s infinite;
+  }
+
+  @keyframes pulse-energy {
+    0%, 100% {
+      transform: scale(1);
+      filter: brightness(1);
+    }
+    50% {
+      transform: scale(1.1);
+      filter: brightness(1.2);
+    }
+  }
+
+  /* 完成动画 */
+  .completion-animation {
+    animation: completion-bounce 0.6s ease-out;
+  }
+
+  @keyframes completion-bounce {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  /* 悬停效果 */
+  .hover-lift {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+
+  /* 渐变背景 */
+  .gradient-purple-gold {
+    background: linear-gradient(135deg, rgb(124 58 237) 0%, rgb(245 158 11) 100%);
+  }
+
+  .gradient-card {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(245, 158, 11, 0.05) 100%);
+  }
+
+  /* 玻璃态效果 */
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* 阴影系统 */
+  .shadow-apple-sm {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .shadow-apple-md {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .shadow-apple-lg {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .shadow-apple-xl {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  /* 按钮样式增强 */
+  .btn-primary {
+    @apply bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+
+  .btn-secondary {
+    @apply bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+
+  .btn-outline {
+    @apply border border-gray-300 hover:border-purple-400 text-gray-700 hover:text-purple-700 font-medium py-2 px-4 rounded-lg transition-all duration-200 bg-white hover:bg-purple-50;
+  }
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .mobile-optimized {
+    @apply px-4 py-2;
+  }
+  
+  .mobile-card {
+    @apply mb-4 last:mb-0;
+  }
+  
+  .mobile-grid {
+    @apply grid-cols-1 gap-3;
+  }
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .auto-dark {
+    @apply dark:bg-gray-900 dark:text-white dark:border-gray-700;
+  }
+}
+
+/* 动画定义 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(124, 58, 237, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.6);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* 特殊效果 */
+.text-gradient-purple-gold {
+  background: linear-gradient(135deg, rgb(124 58 237), rgb(245 158 11));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.border-gradient {
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, rgb(124 58 237), rgb(245 158 11)) border-box;
+  border: 2px solid transparent;
 }
