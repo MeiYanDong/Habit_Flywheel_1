@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import HabitForm from '@/components/HabitForm';
 import RewardForm from '@/components/RewardForm';
+import BindingManager from '@/components/BindingManager';
+import HistoryView from '@/components/HistoryView';
+import SettingsCenter from '@/components/SettingsCenter';
 import { useToast } from '@/hooks/use-toast';
 
 // 数据管理类
