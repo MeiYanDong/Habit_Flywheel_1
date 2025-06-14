@@ -13,7 +13,14 @@ import { useToast } from '@/hooks/use-toast';
 class DataManager {
   static getHabits() {
     const data = localStorage.getItem('habitFlywheel_habits');
-    return data ? JSON.parse(data) : [];
+    const habits = data ? JSON.parse(data) : [];
+    
+    // 确保所有习惯都有频率字段
+    return habits.map(habit => ({
+      ...habit,
+      frequency: habit.frequency || 'daily',
+      targetCount: habit.targetCount || 1
+    }));
   }
 
   static saveHabits(habits) {
@@ -61,15 +68,20 @@ class DataManager {
     return completions.some(c => c.habitId === habitId && c.date === today);
   }
 
-  static getHabitCompletionProgress(habitId, frequency, targetCount = 1) {
+  static getHabitCompletionProgress(habitId, frequency = 'daily', targetCount = 1) {
     const completions = this.getCompletions();
     const now = new Date();
     let startDate;
     
+    // 确保 frequency 有默认值
+    if (!frequency) {
+      frequency = 'daily';
+    }
+    
     if (frequency === 'daily') {
       return this.isHabitCompletedToday(habitId) ? 1 : 0;
     } else if (frequency === 'weekly') {
-      // 获取本周开始日期（周一）- 修复日期计算
+      // 获取本周开始日期（周一）
       const dayOfWeek = now.getDay();
       const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
       startDate = new Date(now.getFullYear(), now.getMonth(), diff);
@@ -129,6 +141,8 @@ const Index = () => {
           name: '每日阅读',
           energyValue: 10,
           bindingRewardId: 'r_001',
+          frequency: 'daily',
+          targetCount: 1,
           isArchived: false,
           createdAt: new Date().toISOString()
         },
@@ -137,6 +151,8 @@ const Index = () => {
           name: '健身锻炼',
           energyValue: 20,
           bindingRewardId: 'r_002',
+          frequency: 'weekly',
+          targetCount: 3,
           isArchived: false,
           createdAt: new Date().toISOString()
         },
@@ -145,6 +161,8 @@ const Index = () => {
           name: '学习编程',
           energyValue: 30,
           bindingRewardId: 'r_001',
+          frequency: 'monthly',
+          targetCount: 15,
           isArchived: false,
           createdAt: new Date().toISOString()
         }
@@ -439,13 +457,13 @@ const Index = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {activeHabits.map(habit => {
-            const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency, habit.targetCount);
-            const targetCount = habit.frequency === 'daily' ? 1 : habit.targetCount;
+            const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency || 'daily', habit.targetCount || 1);
+            const targetCount = habit.frequency === 'daily' ? 1 : (habit.targetCount || 1);
             const isCompleted = currentProgress >= targetCount;
             const boundReward = rewards.find(r => r.id === habit.bindingRewardId);
             
             const getFrequencyText = () => {
-              if (habit.frequency === 'daily') return '每日';
+              if (!habit.frequency || habit.frequency === 'daily') return '每日';
               if (habit.frequency === 'weekly') return `每周 ${habit.targetCount || 1} 次`;
               if (habit.frequency === 'monthly') return `每月 ${habit.targetCount || 1} 次`;
               return '每日';
@@ -584,12 +602,12 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredHabits.map(habit => {
                 const boundReward = rewards.find(r => r.id === habit.bindingRewardId);
-                const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency, habit.targetCount);
-                const targetCount = habit.frequency === 'daily' ? 1 : habit.targetCount;
+                const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency || 'daily', habit.targetCount || 1);
+                const targetCount = habit.frequency === 'daily' ? 1 : (habit.targetCount || 1);
                 const isCompleted = currentProgress >= targetCount;
                 
                 const getFrequencyText = () => {
-                  if (habit.frequency === 'daily') return '每日';
+                  if (!habit.frequency || habit.frequency === 'daily') return '每日';
                   if (habit.frequency === 'weekly') return `每周 ${habit.targetCount || 1} 次`;
                   if (habit.frequency === 'monthly') return `每月 ${habit.targetCount || 1} 次`;
                   return '每日';
@@ -707,7 +725,7 @@ const Index = () => {
       let filtered;
       switch (rewardFilter) {
         case 'redeemable':
-          filtered = rewards.filter(r => !r.isRedeemed); // 显示所有未兑换的奖励
+          filtered = rewards.filter(r => !r.isRedeemed);
           break;
         case 'redeemed':
           filtered = rewards.filter(r => r.isRedeemed);
@@ -867,18 +885,6 @@ const Index = () => {
             })}
           </div>
         )}
-
-        {/* 奖励表单对话框 */}
-        <RewardForm
-          isOpen={rewardFormOpen}
-          onClose={() => {
-            setRewardFormOpen(false);
-            setEditingReward(null);
-          }}
-          onSubmit={editingReward ? updateReward : createReward}
-          initialData={editingReward}
-          isEditing={!!editingReward}
-        />
       </div>
     );
   };
