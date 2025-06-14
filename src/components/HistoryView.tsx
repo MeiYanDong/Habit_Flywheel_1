@@ -1,10 +1,10 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart3, Calendar, TrendingUp, Zap, CheckCircle } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface HistoryViewProps {
   habits: Array<{
@@ -25,6 +25,7 @@ interface HistoryViewProps {
 const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'all'>('week');
   const [selectedHabit, setSelectedHabit] = useState<string>('all');
+  const [chartType, setChartType] = useState<'line' | 'bar'>('line');
 
   // 计算统计数据
   const stats = useMemo(() => {
@@ -96,7 +97,8 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
       days.push({
         date: dateStr,
         dateDisplay: date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }),
-        ...dayStats
+        completions: dayStats.completions,
+        energy: dayStats.energy
       });
     }
     return days;
@@ -113,7 +115,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">历史记录</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-2">数据统计</h2>
         <p className="text-gray-600">回顾成长轨迹，数据见证努力</p>
       </div>
 
@@ -141,6 +143,16 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
                 {habit.name}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={chartType} onValueChange={(value: 'line' | 'bar') => setChartType(value)}>
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="line">折线图</SelectItem>
+            <SelectItem value="bar">柱状图</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -188,31 +200,86 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
           <CardTitle className="flex items-center space-x-2">
             <BarChart3 className="h-5 w-5 text-purple-600" />
             <span>最近7天趋势</span>
+            <Badge variant="outline" className="ml-2">
+              {chartType === 'line' ? '折线图' : '柱状图'}
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-end justify-between h-32 px-2">
-              {recentDays.map((day, index) => {
-                const maxCompletions = Math.max(...recentDays.map(d => d.completions), 1);
-                const height = Math.max((day.completions / maxCompletions) * 100, 4);
-                
-                return (
-                  <div key={day.date} className="flex flex-col items-center space-y-2">
-                    <div className="text-xs text-gray-600">{day.completions}</div>
-                    <div
-                      className="w-8 bg-gradient-to-t from-purple-500 to-purple-300 rounded-t transition-all duration-300"
-                      style={{ height: `${height}%` }}
-                    />
-                    <div className="text-xs text-gray-500">{day.dateDisplay}</div>
-                  </div>
-                );
-              })}
-            </div>
-            
-            <div className="text-center text-sm text-gray-600">
-              {getTimeRangeText()}完成次数趋势
-            </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              {chartType === 'line' ? (
+                <LineChart data={recentDays}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
+                  <XAxis 
+                    dataKey="dateDisplay" 
+                    className="text-xs text-gray-600"
+                  />
+                  <YAxis className="text-xs text-gray-600" />
+                  <Tooltip 
+                    labelClassName="text-gray-900"
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="completions" 
+                    stroke="#8b5cf6" 
+                    strokeWidth={2}
+                    dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, stroke: '#8b5cf6', strokeWidth: 2 }}
+                    name="完成次数"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="energy" 
+                    stroke="#f59e0b" 
+                    strokeWidth={2}
+                    dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, stroke: '#f55e0b', strokeWidth: 2 }}
+                    name="获得能量"
+                  />
+                </LineChart>
+              ) : (
+                <BarChart data={recentDays}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
+                  <XAxis 
+                    dataKey="dateDisplay" 
+                    className="text-xs text-gray-600"
+                  />
+                  <YAxis className="text-xs text-gray-600" />
+                  <Tooltip 
+                    labelClassName="text-gray-900"
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Bar 
+                    dataKey="completions" 
+                    fill="#8b5cf6" 
+                    name="完成次数"
+                    radius={[2, 2, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="energy" 
+                    fill="#f59e0b" 
+                    name="获得能量"
+                    radius={[2, 2, 0, 0]}
+                  />
+                </BarChart>
+              )}
+            </ResponsiveContainer>
+          </div>
+          
+          <div className="text-center text-sm text-gray-600 mt-4">
+            {getTimeRangeText()}数据趋势 - 紫色: 完成次数, 橙色: 获得能量
           </div>
         </CardContent>
       </Card>
