@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap } from 'lucide-react';
+import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import HabitForm from '@/components/HabitForm';
+import { useToast } from '@/hooks/use-toast';
 
 // 数据管理类
 class DataManager {
@@ -64,6 +66,9 @@ const Index = () => {
   const [habits, setHabits] = useState([]);
   const [rewards, setRewards] = useState([]);
   const [completions, setCompletions] = useState([]);
+  const [habitFormOpen, setHabitFormOpen] = useState(false);
+  const [editingHabit, setEditingHabit] = useState(null);
+  const { toast } = useToast();
 
   // 初始化数据
   useEffect(() => {
@@ -129,6 +134,90 @@ const Index = () => {
       setRewards(defaultRewards);
     }
   }, []);
+
+  // 创建新习惯
+  const createHabit = (habitData) => {
+    const newHabit = {
+      id: `h_${Date.now()}`,
+      name: habitData.name,
+      description: habitData.description,
+      energyValue: habitData.energyValue,
+      bindingRewardId: habitData.bindingRewardId || null,
+      isArchived: false,
+      createdAt: new Date().toISOString()
+    };
+
+    const updatedHabits = [...habits, newHabit];
+    setHabits(updatedHabits);
+    DataManager.saveHabits(updatedHabits);
+    
+    toast({
+      title: "习惯创建成功",
+      description: `"${habitData.name}" 已添加到您的习惯列表中`,
+    });
+  };
+
+  // 更新习惯
+  const updateHabit = (habitData) => {
+    const updatedHabits = habits.map(habit => 
+      habit.id === editingHabit.id 
+        ? { 
+            ...habit, 
+            name: habitData.name,
+            description: habitData.description,
+            energyValue: habitData.energyValue,
+            bindingRewardId: habitData.bindingRewardId || null,
+          }
+        : habit
+    );
+    
+    setHabits(updatedHabits);
+    DataManager.saveHabits(updatedHabits);
+    setEditingHabit(null);
+    
+    toast({
+      title: "习惯更新成功",
+      description: `"${habitData.name}" 的信息已更新`,
+    });
+  };
+
+  // 删除习惯
+  const deleteHabit = (habitId) => {
+    const habitToDelete = habits.find(h => h.id === habitId);
+    
+    const updatedHabits = habits.filter(habit => habit.id !== habitId);
+    setHabits(updatedHabits);
+    DataManager.saveHabits(updatedHabits);
+    
+    // 删除相关的完成记录
+    const updatedCompletions = completions.filter(c => c.habitId !== habitId);
+    setCompletions(updatedCompletions);
+    DataManager.saveCompletions(updatedCompletions);
+    
+    toast({
+      title: "习惯已删除",
+      description: `"${habitToDelete?.name}" 及其相关记录已被删除`,
+      variant: "destructive",
+    });
+  };
+
+  // 归档/取消归档习惯
+  const toggleArchiveHabit = (habitId) => {
+    const updatedHabits = habits.map(habit => 
+      habit.id === habitId 
+        ? { ...habit, isArchived: !habit.isArchived }
+        : habit
+    );
+    
+    setHabits(updatedHabits);
+    DataManager.saveHabits(updatedHabits);
+    
+    const habit = habits.find(h => h.id === habitId);
+    toast({
+      title: habit?.isArchived ? "习惯已恢复" : "习惯已归档",
+      description: `"${habit?.name}" ${habit?.isArchived ? '已恢复到活跃状态' : '已移至归档'}`,
+    });
+  };
 
   // 完成习惯
   const completeHabit = (habitId) => {
@@ -245,6 +334,185 @@ const Index = () => {
     );
   };
 
+  // 渲染习惯管理模块
+  const renderHabitsModule = () => {
+    const activeHabits = habits.filter(h => !h.isArchived);
+    const archivedHabits = habits.filter(h => h.isArchived);
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">习惯管理</h2>
+            <p className="text-gray-600">管理您的习惯，让每一个小目标都成为成长的动力</p>
+          </div>
+          <Button 
+            className="bg-purple-600 hover:bg-purple-700"
+            onClick={() => setHabitFormOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            添加习惯
+          </Button>
+        </div>
+
+        {/* 活跃习惯 */}
+        <div>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            活跃习惯 ({activeHabits.length})
+          </h3>
+          
+          {activeHabits.length === 0 ? (
+            <Card className="p-8">
+              <div className="text-center text-gray-500">
+                <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>还没有活跃的习惯</p>
+                <p className="text-sm mt-2">点击"添加习惯"开始您的第一个习惯吧！</p>
+              </div>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeHabits.map(habit => {
+                const boundReward = rewards.find(r => r.id === habit.bindingRewardId);
+                const todayCompleted = DataManager.isHabitCompletedToday(habit.id);
+                
+                return (
+                  <Card key={habit.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900 mb-1">{habit.name}</h4>
+                            {habit.description && (
+                              <p className="text-sm text-gray-600 mb-2">{habit.description}</p>
+                            )}
+                            <div className="flex items-center space-x-2">
+                              <div className="flex items-center space-x-1">
+                                <Zap className="h-4 w-4 text-amber-500" />
+                                <span className="text-sm font-medium">+{habit.energyValue}</span>
+                              </div>
+                              {todayCompleted && (
+                                <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                                  今日已完成
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex space-x-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingHabit(habit);
+                                setHabitFormOpen(true);
+                              }}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => deleteHabit(habit.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {boundReward && (
+                          <div className="p-2 bg-purple-50 rounded-lg">
+                            <div className="text-xs text-purple-600 mb-1">绑定奖励</div>
+                            <div className="text-sm font-medium text-purple-800">
+                              {boundReward.name}
+                            </div>
+                            <div className="text-xs text-purple-600">
+                              {boundReward.currentEnergy}/{boundReward.energyCost}⚡
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleArchiveHabit(habit.id)}
+                            className="flex-1"
+                          >
+                            归档
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 归档习惯 */}
+        {archivedHabits.length > 0 && (
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              归档习惯 ({archivedHabits.length})
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {archivedHabits.map(habit => (
+                <Card key={habit.id} className="opacity-60 hover:opacity-80 transition-opacity">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-700">{habit.name}</h4>
+                          <div className="flex items-center space-x-1 mt-1">
+                            <Zap className="h-4 w-4 text-amber-400" />
+                            <span className="text-sm text-gray-600">+{habit.energyValue}</span>
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">已归档</Badge>
+                      </div>
+                      
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toggleArchiveHabit(habit.id)}
+                          className="flex-1"
+                        >
+                          恢复
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => deleteHabit(habit.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 习惯表单对话框 */}
+        <HabitForm
+          isOpen={habitFormOpen}
+          onClose={() => {
+            setHabitFormOpen(false);
+            setEditingHabit(null);
+          }}
+          onSubmit={editingHabit ? updateHabit : createHabit}
+          initialData={editingHabit}
+          rewards={rewards}
+          isEditing={!!editingHabit}
+        />
+      </div>
+    );
+  };
+
   // 渲染奖励管理模块
   const renderRewardsModule = () => {
     return (
@@ -333,10 +601,10 @@ const Index = () => {
     switch (activeModule) {
       case 'today':
         return renderTodayModule();
+      case 'habits':
+        return renderHabitsModule();
       case 'rewards':
         return renderRewardsModule();
-      case 'habits':
-        return renderPlaceholderModule('习惯管理', '全面的习惯生命周期管理');
       case 'bindings':
         return renderPlaceholderModule('绑定管理', '将习惯绑定到奖励，让每次努力都有明确目标');
       case 'history':
