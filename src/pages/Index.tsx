@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -85,8 +84,7 @@ const Index = () => {
           energyValue: 10,
           bindingRewardId: 'r_001',
           isArchived: false,
-          createdAt: new Date().toISOString(),
-          icon: '📚'
+          createdAt: new Date().toISOString()
         },
         {
           id: 'h_002',
@@ -94,8 +92,7 @@ const Index = () => {
           energyValue: 20,
           bindingRewardId: 'r_002',
           isArchived: false,
-          createdAt: new Date().toISOString(),
-          icon: '💪'
+          createdAt: new Date().toISOString()
         },
         {
           id: 'h_003',
@@ -103,8 +100,7 @@ const Index = () => {
           energyValue: 30,
           bindingRewardId: 'r_001',
           isArchived: false,
-          createdAt: new Date().toISOString(),
-          icon: '💻'
+          createdAt: new Date().toISOString()
         }
       ];
 
@@ -115,8 +111,7 @@ const Index = () => {
           energyCost: 1000,
           currentEnergy: 120,
           isRedeemed: false,
-          createdAt: new Date().toISOString(),
-          icon: '📱'
+          createdAt: new Date().toISOString()
         },
         {
           id: 'r_002',
@@ -124,8 +119,7 @@ const Index = () => {
           energyCost: 200,
           currentEnergy: 60,
           isRedeemed: false,
-          createdAt: new Date().toISOString(),
-          icon: '🤖'
+          createdAt: new Date().toISOString()
         }
       ];
 
@@ -217,7 +211,6 @@ const Index = () => {
               )}>
                 <CardContent className="p-4">
                   <div className="text-center space-y-3">
-                    <div className="text-2xl">{habit.icon}</div>
                     <h3 className="font-medium text-gray-900">{habit.name}</h3>
                     <div className="flex items-center justify-center space-x-1">
                       <Zap className="h-4 w-4 text-amber-500" />
@@ -280,7 +273,6 @@ const Index = () => {
                 <CardContent className="p-4">
                   <div className="space-y-4">
                     <div className="text-center">
-                      <div className="text-2xl mb-2">{reward.icon}</div>
                       <h3 className="font-medium text-gray-900">{reward.name}</h3>
                     </div>
                     
