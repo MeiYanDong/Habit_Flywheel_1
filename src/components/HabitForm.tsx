@@ -56,12 +56,17 @@ const HabitForm: React.FC<HabitFormProps> = ({
       name: initialData?.name || '',
       description: initialData?.description || '',
       energyValue: initialData?.energyValue || 10,
-      bindingRewardId: initialData?.bindingRewardId || '',
+      bindingRewardId: initialData?.bindingRewardId || 'none',
     }
   });
 
   const handleSubmit = (data: HabitFormData) => {
-    onSubmit(data);
+    // Convert 'none' back to undefined/empty string for the API
+    const processedData = {
+      ...data,
+      bindingRewardId: data.bindingRewardId === 'none' ? undefined : data.bindingRewardId
+    };
+    onSubmit(processedData);
     form.reset();
     onClose();
   };
@@ -145,14 +150,14 @@ const HabitForm: React.FC<HabitFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>绑定奖励（可选）</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value || 'none'}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="选择要绑定的奖励" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">不绑定奖励</SelectItem>
+                      <SelectItem value="none">不绑定奖励</SelectItem>
                       {rewards.map((reward) => (
                         <SelectItem key={reward.id} value={reward.id}>
                           {reward.name}
