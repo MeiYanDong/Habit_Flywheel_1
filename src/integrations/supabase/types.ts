@@ -9,7 +9,145 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      habit_completions: {
+        Row: {
+          completed_at: string
+          energy_gained: number
+          habit_id: string
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          energy_gained?: number
+          habit_id: string
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          energy_gained?: number
+          habit_id?: string
+          id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_completions_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habits: {
+        Row: {
+          binding_reward_id: string | null
+          color: string | null
+          created_at: string
+          description: string | null
+          energy_value: number
+          id: string
+          is_archived: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          binding_reward_id?: string | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          energy_value?: number
+          id?: string
+          is_archived?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          binding_reward_id?: string | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          energy_value?: number
+          id?: string
+          is_archived?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_habits_binding_reward"
+            columns: ["binding_reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rewards: {
+        Row: {
+          created_at: string
+          current_energy: number
+          description: string | null
+          energy_cost: number
+          id: string
+          is_redeemed: boolean
+          name: string
+          redeemed_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_energy?: number
+          description?: string | null
+          energy_cost?: number
+          id?: string
+          is_redeemed?: boolean
+          name: string
+          redeemed_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_energy?: number
+          description?: string | null
+          energy_cost?: number
+          id?: string
+          is_redeemed?: boolean
+          name?: string
+          redeemed_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_energy: {
+        Row: {
+          total_energy: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          total_energy?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          total_energy?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

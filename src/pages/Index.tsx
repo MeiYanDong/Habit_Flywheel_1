@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2 } from 'lucide-react';
+
+import React, { useState } from 'react';
+import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2, LogOut, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,546 +13,85 @@ import HistoryView from '@/components/HistoryView';
 import SettingsCenter from '@/components/SettingsCenter';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useHabits, Habit } from '@/hooks/useHabits';
+import { useRewards, Reward } from '@/hooks/useRewards';
 
-// 数据管理类
-class DataManager {
-  static getHabits() {
-    const data = localStorage.getItem('habitFlywheel_habits');
-    const habits = data ? JSON.parse(data) : [];
-    
-    // 确保所有习惯都有频率字段
-    return habits.map(habit => ({
-      ...habit,
-      frequency: habit.frequency || 'daily',
-      targetCount: habit.targetCount || 1
-    }));
-  }
-
-  static saveHabits(habits) {
-    localStorage.setItem('habitFlywheel_habits', JSON.stringify(habits));
-  }
-
-  static getRewards() {
-    const data = localStorage.getItem('habitFlywheel_rewards');
-    return data ? JSON.parse(data) : [];
-  }
-
-  static saveRewards(rewards) {
-    localStorage.setItem('habitFlywheel_rewards', JSON.stringify(rewards));
-  }
-
-  static getCompletions() {
-    const data = localStorage.getItem('habitFlywheel_completions');
-    return data ? JSON.parse(data) : [];
-  }
-
-  static saveCompletions(completions) {
-    localStorage.setItem('habitFlywheel_completions', JSON.stringify(completions));
-  }
-
-  static addCompletion(habitId, energy, boundRewardId) {
-    const completions = this.getCompletions();
-    const today = new Date().toISOString().split('T')[0];
-    
-    completions.push({
-      id: `comp_${Date.now()}`,
-      habitId,
-      date: today,
-      energy,
-      boundRewardId,
-      timestamp: new Date().toISOString()
-    });
-    
-    this.saveCompletions(completions);
-    return completions;
-  }
-
-  static isHabitCompletedToday(habitId) {
-    const completions = this.getCompletions();
-    const today = new Date().toISOString().split('T')[0];
-    return completions.some(c => c.habitId === habitId && c.date === today);
-  }
-
-  static getHabitCompletionProgress(habitId, frequency = 'daily', targetCount = 1) {
-    const completions = this.getCompletions();
-    const now = new Date();
-    let startDate;
-    
-    // 确保 frequency 有默认值
-    if (!frequency) {
-      frequency = 'daily';
-    }
-    
-    if (frequency === 'daily') {
-      return this.isHabitCompletedToday(habitId) ? 1 : 0;
-    } else if (frequency === 'weekly') {
-      // 获取本周开始日期（周一）
-      const dayOfWeek = now.getDay();
-      const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-      startDate = new Date(now.getFullYear(), now.getMonth(), diff);
-    } else if (frequency === 'monthly') {
-      // 获取本月开始日期
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-    }
-    
-    // 确保 startDate 存在且有效
-    if (!startDate || isNaN(startDate.getTime())) {
-      console.error('Invalid startDate calculated for habit:', habitId, 'frequency:', frequency);
-      return 0;
-    }
-    
-    const startDateStr = startDate.toISOString().split('T')[0];
-    const todayStr = new Date().toISOString().split('T')[0];
-    
-    const periodCompletions = completions.filter(c => 
-      c.habitId === habitId && 
-      c.date >= startDateStr && 
-      c.date <= todayStr
-    );
-    
-    return periodCompletions.length;
-  }
-}
-
-// 主应用组件
 const Index = () => {
   const { showProgress, showStats, notifications } = useSettings();
+  const { user, signOut } = useAuth();
+  const { habits, loading: habitsLoading, createHabit, updateHabit, deleteHabit } = useHabits();
+  const { rewards, loading: rewardsLoading, createReward, updateReward, deleteReward, redeemReward } = useRewards();
+  
   const [activeModule, setActiveModule] = useState('today');
-  const [habits, setHabits] = useState([]);
-  const [rewards, setRewards] = useState([]);
-  const [completions, setCompletions] = useState([]);
   const [habitFormOpen, setHabitFormOpen] = useState(false);
   const [rewardFormOpen, setRewardFormOpen] = useState(false);
-  const [editingHabit, setEditingHabit] = useState(null);
-  const [editingReward, setEditingReward] = useState(null);
-  const [habitFilter, setHabitFilter] = useState('active'); // 'active', 'archived', 'all'
-  const [rewardFilter, setRewardFilter] = useState('redeemable'); // 'redeemable', 'redeemed', 'all'
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const [editingReward, setEditingReward] = useState<Reward | null>(null);
+  const [habitFilter, setHabitFilter] = useState('active');
+  const [rewardFilter, setRewardFilter] = useState('redeemable');
   const { toast } = useToast();
 
-  // 初始化数据
-  useEffect(() => {
-    const loadedHabits = DataManager.getHabits();
-    const loadedRewards = DataManager.getRewards();
-    const loadedCompletions = DataManager.getCompletions();
-
-    setHabits(loadedHabits);
-    setRewards(loadedRewards);
-    setCompletions(loadedCompletions);
-
-    // 如果是首次使用，创建示例数据
-    if (loadedHabits.length === 0) {
-      const defaultHabits = [
-        {
-          id: 'h_001',
-          name: '每日阅读',
-          energyValue: 10,
-          bindingRewardId: 'r_001',
-          frequency: 'daily',
-          targetCount: 1,
-          isArchived: false,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'h_002',
-          name: '健身锻炼',
-          energyValue: 20,
-          bindingRewardId: 'r_002',
-          frequency: 'weekly',
-          targetCount: 3,
-          isArchived: false,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'h_003',
-          name: '学习编程',
-          energyValue: 30,
-          bindingRewardId: 'r_001',
-          frequency: 'monthly',
-          targetCount: 15,
-          isArchived: false,
-          createdAt: new Date().toISOString()
-        }
-      ];
-
-      const defaultRewards = [
-        {
-          id: 'r_001',
-          name: 'iPhone 15 Pro',
-          energyCost: 1000,
-          currentEnergy: 120,
-          isRedeemed: false,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'r_002',
-          name: 'ChatGPT Plus会员',
-          energyCost: 200,
-          currentEnergy: 60,
-          isRedeemed: false,
-          createdAt: new Date().toISOString()
-        }
-      ];
-
-      DataManager.saveHabits(defaultHabits);
-      DataManager.saveRewards(defaultRewards);
-      setHabits(defaultHabits);
-      setRewards(defaultRewards);
-    }
-  }, []);
-
-  // 创建新习惯
-  const createHabit = (habitData) => {
-    const newHabit = {
-      id: `h_${Date.now()}`,
+  // 处理创建习惯
+  const handleCreateHabit = async (habitData: any) => {
+    await createHabit({
       name: habitData.name,
       description: habitData.description,
-      energyValue: habitData.energyValue,
-      bindingRewardId: habitData.bindingRewardId || null,
-      frequency: habitData.frequency || 'daily',
-      targetCount: habitData.targetCount || 1,
-      isArchived: false,
-      createdAt: new Date().toISOString()
-    };
-
-    const updatedHabits = [...habits, newHabit];
-    setHabits(updatedHabits);
-    DataManager.saveHabits(updatedHabits);
-    
-    toast({
-      title: "习惯创建成功",
-      description: `"${habitData.name}" 已添加到您的习惯列表中`,
+      energy_value: habitData.energyValue,
+      binding_reward_id: habitData.bindingRewardId || null,
+      is_archived: false,
     });
+    setHabitFormOpen(false);
   };
 
-  // 更新习惯
-  const updateHabit = (habitData) => {
-    const updatedHabits = habits.map(habit => 
-      habit.id === editingHabit.id 
-        ? { 
-            ...habit, 
-            name: habitData.name,
-            description: habitData.description,
-            energyValue: habitData.energyValue,
-            bindingRewardId: habitData.bindingRewardId || null,
-            frequency: habitData.frequency || 'daily',
-            targetCount: habitData.targetCount || 1,
-          }
-        : habit
-    );
+  // 处理更新习惯
+  const handleUpdateHabit = async (habitData: any) => {
+    if (!editingHabit) return;
     
-    setHabits(updatedHabits);
-    DataManager.saveHabits(updatedHabits);
+    await updateHabit(editingHabit.id, {
+      name: habitData.name,
+      description: habitData.description,
+      energy_value: habitData.energyValue,
+      binding_reward_id: habitData.bindingRewardId || null,
+    });
     setEditingHabit(null);
-    
-    toast({
-      title: "习惯更新成功",
-      description: `"${habitData.name}" 的信息已更新`,
-    });
+    setHabitFormOpen(false);
   };
 
-  // 删除习惯
-  const deleteHabit = (habitId) => {
-    const habitToDelete = habits.find(h => h.id === habitId);
-    
-    const updatedHabits = habits.filter(habit => habit.id !== habitId);
-    setHabits(updatedHabits);
-    DataManager.saveHabits(updatedHabits);
-    
-    // 删除相关的完成记录
-    const updatedCompletions = completions.filter(c => c.habitId !== habitId);
-    setCompletions(updatedCompletions);
-    DataManager.saveCompletions(updatedCompletions);
-    
-    toast({
-      title: "习惯已删除",
-      description: `"${habitToDelete?.name}" 及其相关记录已被删除`,
-      variant: "destructive",
-    });
-  };
-
-  // 归档/取消归档习惯
-  const toggleArchiveHabit = (habitId) => {
-    const updatedHabits = habits.map(habit => 
-      habit.id === habitId 
-        ? { ...habit, isArchived: !habit.isArchived }
-        : habit
-    );
-    
-    setHabits(updatedHabits);
-    DataManager.saveHabits(updatedHabits);
-    
-    const habit = habits.find(h => h.id === habitId);
-    toast({
-      title: habit?.isArchived ? "习惯已恢复" : "习惯已归档",
-      description: `"${habit?.name}" ${habit?.isArchived ? '已恢复到活跃状态' : '已移至归档'}`,
-    });
-  };
-
-  // 完成习惯
-  const completeHabit = (habitId) => {
+  // 处理归档/恢复习惯
+  const toggleArchiveHabit = async (habitId: string) => {
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
-
-    // 检查是否可以完成（根据频率和目标次数）
-    const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency, habit.targetCount);
-    const targetCount = habit.frequency === 'daily' ? 1 : habit.targetCount;
     
-    if (currentProgress >= targetCount) {
-      toast({
-        title: "本周期目标已完成",
-        description: "您已完成本周期的目标，请等待下个周期开始",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // 添加完成记录
-    DataManager.addCompletion(habitId, habit.energyValue, habit.bindingRewardId);
-
-    // 如果有绑定奖励，增加奖励能量
-    if (habit.bindingRewardId) {
-      const updatedRewards = rewards.map(reward => {
-        if (reward.id === habit.bindingRewardId) {
-          return {
-            ...reward,
-            currentEnergy: reward.currentEnergy + habit.energyValue
-          };
-        }
-        return reward;
-      });
-      setRewards(updatedRewards);
-      DataManager.saveRewards(updatedRewards);
-    }
-
-    // 刷新完成记录
-    setCompletions(DataManager.getCompletions());
-    
-    // 根据通知设置决定是否显示通知
-    if (notifications) {
-      toast({
-        title: "习惯完成",
-        description: `恭喜完成"${habit.name}"，获得 ${habit.energyValue} 能量！`,
-      });
-    }
+    await updateHabit(habitId, { is_archived: !habit.is_archived });
   };
 
-  // 创建新奖励
-  const createReward = (rewardData) => {
-    const newReward = {
-      id: `r_${Date.now()}`,
+  // 处理创建奖励
+  const handleCreateReward = async (rewardData: any) => {
+    await createReward({
       name: rewardData.name,
       description: rewardData.description,
-      energyCost: rewardData.energyCost,
-      currentEnergy: 0,
-      isRedeemed: false,
-      createdAt: new Date().toISOString()
-    };
-
-    const updatedRewards = [...rewards, newReward];
-    setRewards(updatedRewards);
-    DataManager.saveRewards(updatedRewards);
-    
-    toast({
-      title: "奖励创建成功",
-      description: `"${rewardData.name}" 已添加到您的奖励列表中`,
+      energy_cost: rewardData.energyCost,
     });
+    setRewardFormOpen(false);
   };
 
-  // 更新奖励
-  const updateReward = (rewardData) => {
-    const updatedRewards = rewards.map(reward => 
-      reward.id === editingReward.id 
-        ? { 
-            ...reward, 
-            name: rewardData.name,
-            description: rewardData.description,
-            energyCost: rewardData.energyCost,
-          }
-        : reward
-    );
+  // 处理更新奖励
+  const handleUpdateReward = async (rewardData: any) => {
+    if (!editingReward) return;
     
-    setRewards(updatedRewards);
-    DataManager.saveRewards(updatedRewards);
+    await updateReward(editingReward.id, {
+      name: rewardData.name,
+      description: rewardData.description,
+      energy_cost: rewardData.energyCost,
+    });
     setEditingReward(null);
-    
-    toast({
-      title: "奖励更新成功",
-      description: `"${rewardData.name}" 的信息已更新`,
-    });
+    setRewardFormOpen(false);
   };
 
-  // 删除奖励
-  const deleteReward = (rewardId) => {
-    const rewardToDelete = rewards.find(r => r.id === rewardId);
-    
-    const updatedRewards = rewards.filter(reward => reward.id !== rewardId);
-    setRewards(updatedRewards);
-    DataManager.saveRewards(updatedRewards);
-    
-    // 解除相关习惯的绑定
-    const updatedHabits = habits.map(habit => 
-      habit.bindingRewardId === rewardId 
-        ? { ...habit, bindingRewardId: null }
-        : habit
-    );
-    setHabits(updatedHabits);
-    DataManager.saveHabits(updatedHabits);
-    
-    toast({
-      title: "奖励已删除",
-      description: `"${rewardToDelete?.name}" 及其相关绑定已被删除`,
-      variant: "destructive",
-    });
-  };
-
-  // 兑换奖励
-  const redeemReward = (rewardId) => {
-    const reward = rewards.find(r => r.id === rewardId);
-    if (!reward || reward.currentEnergy < reward.energyCost) return;
-
-    const updatedRewards = rewards.map(r => 
-      r.id === rewardId 
-        ? { ...r, isRedeemed: true, redeemedAt: new Date().toISOString() }
-        : r
-    );
-    
-    setRewards(updatedRewards);
-    DataManager.saveRewards(updatedRewards);
-    
-    toast({
-      title: "奖励兑换成功",
-      description: `恭喜您兑换了"${reward.name}"！`,
-    });
-  };
-
-  // 更新习惯的绑定奖励
-  const updateHabitBinding = (habitId: string, updates: { bindingRewardId?: string }) => {
-    const updatedHabits = habits.map(habit => 
-      habit.id === habitId 
-        ? { ...habit, ...updates }
-        : habit
-    );
-    
-    setHabits(updatedHabits);
-    DataManager.saveHabits(updatedHabits);
-  };
-
-  // 数据导出功能
-  const handleExportData = () => {
-    const exportData = {
-      habits: DataManager.getHabits(),
-      rewards: DataManager.getRewards(),
-      completions: DataManager.getCompletions(),
-      exportDate: new Date().toISOString(),
-      version: '1.0.0'
-    };
-
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `habit-flywheel-backup-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  // 数据导入功能
-  const handleImportData = (importedData: any) => {
-    try {
-      if (importedData.habits) {
-        setHabits(importedData.habits);
-        DataManager.saveHabits(importedData.habits);
-      }
-      
-      if (importedData.rewards) {
-        setRewards(importedData.rewards);
-        DataManager.saveRewards(importedData.rewards);
-      }
-      
-      if (importedData.completions) {
-        setCompletions(importedData.completions);
-        DataManager.saveCompletions(importedData.completions);
-      }
-    } catch (error) {
-      console.error('导入数据时出错:', error);
-      throw error;
-    }
-  };
-
-  // 清除所有数据
-  const handleClearAllData = () => {
-    setHabits([]);
-    setRewards([]);
-    setCompletions([]);
-    DataManager.saveHabits([]);
-    DataManager.saveRewards([]);
-    DataManager.saveCompletions([]);
-  };
-
-  // 重置为默认数据
-  const handleResetToDefaults = () => {
-    const defaultHabits = [
-      {
-        id: 'h_001',
-        name: '每日阅读',
-        energyValue: 10,
-        bindingRewardId: 'r_001',
-        frequency: 'daily',
-        targetCount: 1,
-        isArchived: false,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'h_002',
-        name: '健身锻炼',
-        energyValue: 20,
-        bindingRewardId: 'r_002',
-        frequency: 'weekly',
-        targetCount: 3,
-        isArchived: false,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'h_003',
-        name: '学习编程',
-        energyValue: 30,
-        bindingRewardId: 'r_001',
-        frequency: 'monthly',
-        targetCount: 15,
-        isArchived: false,
-        createdAt: new Date().toISOString()
-      }
-    ];
-
-    const defaultRewards = [
-      {
-        id: 'r_001',
-        name: 'iPhone 15 Pro',
-        energyCost: 1000,
-        currentEnergy: 120,
-        isRedeemed: false,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'r_002',
-        name: 'ChatGPT Plus会员',
-        energyCost: 200,
-        currentEnergy: 60,
-        isRedeemed: false,
-        createdAt: new Date().toISOString()
-      }
-    ];
-
-    setHabits(defaultHabits);
-    setRewards(defaultRewards);
-    setCompletions([]);
-    DataManager.saveHabits(defaultHabits);
-    DataManager.saveRewards(defaultRewards);
-    DataManager.saveCompletions([]);
+  // 更新习惯绑定
+  const updateHabitBinding = async (habitId: string, updates: { bindingRewardId?: string }) => {
+    await updateHabit(habitId, { binding_reward_id: updates.bindingRewardId });
   };
 
   // 菜单项配置
@@ -566,10 +106,7 @@ const Index = () => {
 
   // 渲染今日习惯模块
   const renderTodayModule = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const todayCompletions = completions.filter(c => c.date === today);
-    const activeHabits = habits.filter(h => !h.isArchived);
-    const totalEnergyToday = todayCompletions.reduce((sum, c) => sum + c.energy, 0);
+    const activeHabits = habits.filter(h => !h.is_archived);
 
     return (
       <div className="space-y-6">
@@ -578,63 +115,25 @@ const Index = () => {
           <p className="text-gray-600 dark:text-gray-400">专注今天，让每一次打卡都充满成就感</p>
         </div>
 
-        {showStats && (
-          <Card className="bg-gradient-to-r from-purple-50 to-amber-50 border-none dark:from-purple-900/20 dark:to-amber-900/20 dark:border dark:border-gray-700">
-            <CardContent className="p-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-700 dark:text-purple-300 mb-2">
-                  {todayCompletions.length}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">今日已完成</div>
-                <div className="flex items-center justify-center space-x-2">
-                  <Zap className="h-5 w-5 text-amber-500" />
-                  <span className="text-lg font-medium dark:text-gray-200">已获得 {totalEnergyToday} 能量</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {activeHabits.map(habit => {
-            const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency || 'daily', habit.targetCount || 1);
-            const targetCount = habit.frequency === 'daily' ? 1 : (habit.targetCount || 1);
-            const isCompleted = currentProgress >= targetCount;
-            const boundReward = rewards.find(r => r.id === habit.bindingRewardId);
-            
-            const getFrequencyText = () => {
-              if (!habit.frequency || habit.frequency === 'daily') return '每日';
-              if (habit.frequency === 'weekly') return `每周 ${habit.targetCount || 1} 次 (${currentProgress}/${targetCount})`;
-              if (habit.frequency === 'monthly') return `每月 ${habit.targetCount || 1} 次 (${currentProgress}/${targetCount})`;
-              return '每日';
-            };
+            const boundReward = rewards.find(r => r.id === habit.binding_reward_id);
             
             return (
-              <Card key={habit.id} className={cn(
-                "transition-all duration-200 hover:shadow-lg dark:bg-gray-800 dark:border-gray-700",
-                isCompleted ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700" : "hover:shadow-md"
-              )}>
+              <Card key={habit.id} className="transition-all duration-200 hover:shadow-lg dark:bg-gray-800 dark:border-gray-700">
                 <CardContent className="p-4">
                   <div className="text-center space-y-3">
                     <h3 className="font-medium text-gray-900 dark:text-gray-100">{habit.name}</h3>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{getFrequencyText()}</div>
                     <div className="flex items-center justify-center space-x-1">
                       <Zap className="h-4 w-4 text-amber-500" />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">+{habit.energyValue}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">+{habit.energy_value}</span>
                     </div>
                     
-                    {isCompleted ? (
-                      <Badge className="bg-green-100 text-green-800 border-green-200 dark:bg-green-800 dark:text-green-100">
-                        ✅ 已完成
-                      </Badge>
-                    ) : (
-                      <Button 
-                        onClick={() => completeHabit(habit.id)}
-                        className="w-full bg-purple-600 hover:bg-purple-700"
-                      >
-                        🎯 立即打卡
-                      </Button>
-                    )}
+                    <Button 
+                      className="w-full bg-purple-600 hover:bg-purple-700"
+                    >
+                      🎯 立即打卡
+                    </Button>
                     
                     {boundReward && (
                       <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -653,36 +152,20 @@ const Index = () => {
 
   // 渲染习惯管理模块
   const renderHabitsModule = () => {
-    // 根据筛选条件过滤和排序习惯
-    const getFilteredAndSortedHabits = () => {
-      let filtered;
+    const getFilteredHabits = () => {
       switch (habitFilter) {
         case 'active':
-          filtered = habits.filter(h => !h.isArchived);
-          break;
+          return habits.filter(h => !h.is_archived);
         case 'archived':
-          filtered = habits.filter(h => h.isArchived);
-          break;
+          return habits.filter(h => h.is_archived);
         case 'all':
-          filtered = habits;
-          break;
+          return habits;
         default:
-          filtered = habits.filter(h => !h.isArchived);
+          return habits.filter(h => !h.is_archived);
       }
-
-      // 当筛选为全部习惯时，已归档习惯排序置后
-      if (habitFilter === 'all') {
-        return filtered.sort((a, b) => {
-          if (a.isArchived && !b.isArchived) return 1;
-          if (!a.isArchived && b.isArchived) return -1;
-          return 0;
-        });
-      }
-
-      return filtered;
     };
 
-    const filteredHabits = getFilteredAndSortedHabits();
+    const filteredHabits = getFilteredHabits();
 
     return (
       <div className="space-y-6">
@@ -712,7 +195,6 @@ const Index = () => {
           </div>
         </div>
 
-        {/* 习惯列表 */}
         <div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
             {habitFilter === 'active' && `活跃习惯 (${filteredHabits.length})`}
@@ -724,33 +206,19 @@ const Index = () => {
             <Card className="p-8 dark:bg-gray-800 dark:border-gray-700">
               <div className="text-center text-gray-500 dark:text-gray-400">
                 <Target className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                <p>
-                  {habitFilter === 'active' && '还没有活跃的习惯'}
-                  {habitFilter === 'archived' && '还没有归档的习惯'}
-                  {habitFilter === 'all' && '还没有任何习惯'}
-                </p>
+                <p>还没有习惯</p>
                 <p className="text-sm mt-2">点击"添加习惯"开始您的第一个习惯吧！</p>
               </div>
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredHabits.map(habit => {
-                const boundReward = rewards.find(r => r.id === habit.bindingRewardId);
-                const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency || 'daily', habit.targetCount || 1);
-                const targetCount = habit.frequency === 'daily' ? 1 : (habit.targetCount || 1);
-                const isCompleted = currentProgress >= targetCount;
-                
-                const getFrequencyText = () => {
-                  if (!habit.frequency || habit.frequency === 'daily') return '每日';
-                  if (habit.frequency === 'weekly') return `每周 ${habit.targetCount || 1} 次 (${currentProgress}/${targetCount})`;
-                  if (habit.frequency === 'monthly') return `每月 ${habit.targetCount || 1} 次 (${currentProgress}/${targetCount})`;
-                  return '每日';
-                };
+                const boundReward = rewards.find(r => r.id === habit.binding_reward_id);
                 
                 return (
                   <Card key={habit.id} className={cn(
                     "hover:shadow-lg transition-shadow",
-                    habit.isArchived && "opacity-60"
+                    habit.is_archived && "opacity-60"
                   )}>
                     <CardContent className="p-4">
                       <div className="space-y-4">
@@ -758,24 +226,18 @@ const Index = () => {
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
                               <h4 className="font-medium text-gray-900">{habit.name}</h4>
-                              {habit.isArchived && (
+                              {habit.is_archived && (
                                 <Badge variant="secondary" className="text-xs">已归档</Badge>
                               )}
                             </div>
                             {habit.description && (
                               <p className="text-sm text-gray-600 mb-2">{habit.description}</p>
                             )}
-                            <div className="text-xs text-gray-500 mb-2">{getFrequencyText()}</div>
                             <div className="flex items-center space-x-2">
                               <div className="flex items-center space-x-1">
                                 <Zap className="h-4 w-4 text-amber-500" />
-                                <span className="text-sm font-medium">+{habit.energyValue}</span>
+                                <span className="text-sm font-medium">+{habit.energy_value}</span>
                               </div>
-                              {isCompleted && !habit.isArchived && (
-                                <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
-                                  本周期已完成
-                                </Badge>
-                              )}
                             </div>
                           </div>
                           
@@ -807,7 +269,7 @@ const Index = () => {
                               {boundReward.name}
                             </div>
                             <div className="text-xs text-purple-600">
-                              {boundReward.currentEnergy}/{boundReward.energyCost}⚡
+                              {boundReward.current_energy}/{boundReward.energy_cost}⚡
                             </div>
                           </div>
                         )}
@@ -819,7 +281,7 @@ const Index = () => {
                             onClick={() => toggleArchiveHabit(habit.id)}
                             className="flex-1"
                           >
-                            {habit.isArchived ? '恢复' : '归档'}
+                            {habit.is_archived ? '恢复' : '归档'}
                           </Button>
                         </div>
                       </div>
@@ -831,16 +293,26 @@ const Index = () => {
           )}
         </div>
 
-        {/* 习惯表单对话框 */}
         <HabitForm
           isOpen={habitFormOpen}
           onClose={() => {
             setHabitFormOpen(false);
             setEditingHabit(null);
           }}
-          onSubmit={editingHabit ? updateHabit : createHabit}
-          initialData={editingHabit}
-          rewards={rewards}
+          onSubmit={editingHabit ? handleUpdateHabit : handleCreateHabit}
+          initialData={editingHabit ? {
+            name: editingHabit.name,
+            description: editingHabit.description,
+            energyValue: editingHabit.energy_value,
+            bindingRewardId: editingHabit.binding_reward_id
+          } : null}
+          rewards={rewards.map(r => ({
+            id: r.id,
+            name: r.name,
+            energyCost: r.energy_cost,
+            currentEnergy: r.current_energy,
+            isRedeemed: r.is_redeemed
+          }))}
           isEditing={!!editingHabit}
         />
       </div>
@@ -849,41 +321,20 @@ const Index = () => {
 
   // 渲染奖励管理模块
   const renderRewardsModule = () => {
-    // 根据筛选条件过滤和排序奖励
-    const getFilteredAndSortedRewards = () => {
-      let filtered;
+    const getFilteredRewards = () => {
       switch (rewardFilter) {
         case 'redeemable':
-          filtered = rewards.filter(r => !r.isRedeemed);
-          break;
+          return rewards.filter(r => !r.is_redeemed);
         case 'redeemed':
-          filtered = rewards.filter(r => r.isRedeemed);
-          break;
+          return rewards.filter(r => r.is_redeemed);
         case 'all':
-          filtered = rewards;
-          break;
+          return rewards;
         default:
-          filtered = rewards;
+          return rewards;
       }
-
-      // 当筛选为全部奖励时，可兑换奖励排在前方，已兑换奖励置后
-      if (rewardFilter === 'all') {
-        return filtered.sort((a, b) => {
-          const aCanRedeem = !a.isRedeemed && a.currentEnergy >= a.energyCost;
-          const bCanRedeem = !b.isRedeemed && b.currentEnergy >= b.energyCost;
-          
-          if (aCanRedeem && !bCanRedeem) return -1;
-          if (!aCanRedeem && bCanRedeem) return 1;
-          if (a.isRedeemed && !b.isRedeemed) return 1;
-          if (!a.isRedeemed && b.isRedeemed) return -1;
-          return 0;
-        });
-      }
-
-      return filtered;
     };
 
-    const filteredRewards = getFilteredAndSortedRewards();
+    const filteredRewards = getFilteredRewards();
 
     return (
       <div className="space-y-6">
@@ -913,37 +364,30 @@ const Index = () => {
           </div>
         </div>
 
-        {/* 奖励列表 */}
         <div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-            {rewardFilter === 'redeemable' && `可兑换奖励 (${filteredRewards.length})`}
-            {rewardFilter === 'redeemed' && `已兑换奖励 (${filteredRewards.length})`}
-            {rewardFilter === 'all' && `全部奖励 (${filteredRewards.length})`}
+            奖励列表 ({filteredRewards.length})
           </h3>
           
           {filteredRewards.length === 0 ? (
             <Card className="p-8 dark:bg-gray-800 dark:border-gray-700">
               <div className="text-center text-gray-500 dark:text-gray-400">
                 <Gift className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                <p>
-                  {rewardFilter === 'redeemable' && '还没有可兑换的奖励'}
-                  {rewardFilter === 'redeemed' && '还没有已兑换的奖励'}
-                  {rewardFilter === 'all' && '还没有任何奖励'}
-                </p>
+                <p>还没有奖励</p>
                 <p className="text-sm mt-2">点击"添加奖励"创建您的第一个奖励吧！</p>
               </div>
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredRewards.map(reward => {
-                const progress = Math.min((reward.currentEnergy / reward.energyCost) * 100, 100);
-                const canRedeem = reward.currentEnergy >= reward.energyCost;
+                const progress = Math.min((reward.current_energy / reward.energy_cost) * 100, 100);
+                const canRedeem = reward.current_energy >= reward.energy_cost;
                 
                 return (
                   <Card key={reward.id} className={cn(
                     "transition-all duration-200 hover:shadow-lg dark:bg-gray-800 dark:border-gray-700",
-                    canRedeem && !reward.isRedeemed && "ring-2 ring-amber-400",
-                    reward.isRedeemed && "opacity-60"
+                    canRedeem && !reward.is_redeemed && "ring-2 ring-amber-400",
+                    reward.is_redeemed && "opacity-60"
                   )}>
                     <CardContent className="p-4">
                       <div className="space-y-4">
@@ -951,7 +395,7 @@ const Index = () => {
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
                               <h3 className="font-medium text-gray-900 dark:text-gray-100">{reward.name}</h3>
-                              {reward.isRedeemed && (
+                              {reward.is_redeemed && (
                                 <Badge className="bg-green-100 text-green-800 border-green-200 text-xs dark:bg-green-800 dark:text-green-100">
                                   已兑换
                                 </Badge>
@@ -999,11 +443,11 @@ const Index = () => {
                             </div>
                           )}
                           <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                            {reward.currentEnergy}/{reward.energyCost}⚡
+                            {reward.current_energy}/{reward.energy_cost}⚡
                           </div>
                         </div>
                         
-                        {reward.isRedeemed ? (
+                        {reward.is_redeemed ? (
                           <Button variant="outline" className="w-full dark:border-gray-600" disabled>
                             ✅ 已兑换
                           </Button>
@@ -1028,15 +472,18 @@ const Index = () => {
           )}
         </div>
 
-        {/* 奖励表单对话框 */}
         <RewardForm
           isOpen={rewardFormOpen}
           onClose={() => {
             setRewardFormOpen(false);
             setEditingReward(null);
           }}
-          onSubmit={editingReward ? updateReward : createReward}
-          initialData={editingReward}
+          onSubmit={editingReward ? handleUpdateReward : handleCreateReward}
+          initialData={editingReward ? {
+            name: editingReward.name,
+            description: editingReward.description,
+            energyCost: editingReward.energy_cost
+          } : null}
           isEditing={!!editingReward}
         />
       </div>
@@ -1045,31 +492,30 @@ const Index = () => {
 
   // 渲染绑定管理模块
   const renderBindingsModule = () => {
+    const mappedHabits = habits.map(h => ({
+      id: h.id,
+      name: h.name,
+      energyValue: h.energy_value,
+      bindingRewardId: h.binding_reward_id,
+      isArchived: h.is_archived
+    }));
+
+    const mappedRewards = rewards.map(r => ({
+      id: r.id,
+      name: r.name,
+      energyCost: r.energy_cost,
+      currentEnergy: r.current_energy,
+      isRedeemed: r.is_redeemed
+    }));
+
     return (
       <BindingManager
-        habits={habits}
-        rewards={rewards}
+        habits={mappedHabits}
+        rewards={mappedRewards}
         onUpdateHabit={updateHabitBinding}
       />
     );
   };
-
-  // 渲染其他模块的占位内容
-  const renderPlaceholderModule = (title, description) => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{title}</h2>
-        <p className="text-gray-600 dark:text-gray-400">{description}</p>
-      </div>
-      <Card className="p-8 dark:bg-gray-800 dark:border-gray-700">
-        <div className="text-center text-gray-500 dark:text-gray-400">
-          <Target className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-          <p>该模块正在开发中...</p>
-          <p className="text-sm mt-2">敬请期待更多功能！</p>
-        </div>
-      </Card>
-    </div>
-  );
 
   // 根据当前模块渲染内容
   const renderContent = () => {
@@ -1085,17 +531,25 @@ const Index = () => {
       case 'history':
         return (
           <HistoryView
-            habits={habits}
-            completions={completions}
+            habits={habits.map(h => ({
+              id: h.id,
+              name: h.name,
+              energyValue: h.energy_value,
+              frequency: 'daily',
+              targetCount: 1,
+              isArchived: h.is_archived,
+              createdAt: h.created_at
+            }))}
+            completions={[]}
           />
         );
       case 'settings':
         return (
           <SettingsCenter
-            onExportData={handleExportData}
-            onImportData={handleImportData}
-            onClearAllData={handleClearAllData}
-            onResetToDefaults={handleResetToDefaults}
+            onExportData={() => {}}
+            onImportData={() => {}}
+            onClearAllData={() => {}}
+            onResetToDefaults={() => {}}
           />
         );
       default:
@@ -1116,6 +570,25 @@ const Index = () => {
             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
               让每一份努力<br />都精准浇灌你的目标
             </p>
+          </div>
+          
+          {/* 用户信息 */}
+          <div className="mb-6 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <User className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                {user?.email}
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={signOut}
+              className="w-full mt-2 text-xs"
+            >
+              <LogOut className="h-3 w-3 mr-1" />
+              退出登录
+            </Button>
           </div>
           
           <nav className="space-y-2">
