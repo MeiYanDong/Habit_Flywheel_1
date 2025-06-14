@@ -20,12 +20,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface HabitFormData {
   name: string;
   description?: string;
   energyValue: number;
   bindingRewardId?: string;
+  frequency: 'daily' | 'weekly' | 'monthly';
+  targetCount?: number;
 }
 
 interface HabitFormProps {
@@ -38,6 +41,8 @@ interface HabitFormProps {
     description?: string;
     energyValue: number;
     bindingRewardId?: string;
+    frequency?: 'daily' | 'weekly' | 'monthly';
+    targetCount?: number;
   };
   rewards: Array<{ id: string; name: string; }>;
   isEditing?: boolean;
@@ -57,6 +62,8 @@ const HabitForm: React.FC<HabitFormProps> = ({
       description: initialData?.description || '',
       energyValue: initialData?.energyValue || 10,
       bindingRewardId: initialData?.bindingRewardId || 'none',
+      frequency: initialData?.frequency || 'daily',
+      targetCount: initialData?.targetCount || 1,
     }
   });
 
@@ -75,6 +82,8 @@ const HabitForm: React.FC<HabitFormProps> = ({
     form.reset();
     onClose();
   };
+
+  const selectedFrequency = form.watch('frequency');
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -119,6 +128,65 @@ const HabitForm: React.FC<HabitFormProps> = ({
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="frequency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>频率</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-2"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="daily" id="daily" />
+                        <Label htmlFor="daily" className="text-sm font-normal">每日</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="weekly" id="weekly" />
+                        <Label htmlFor="weekly" className="text-sm font-normal">每周</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="monthly" id="monthly" />
+                        <Label htmlFor="monthly" className="text-sm font-normal">每月</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {selectedFrequency !== 'daily' && (
+              <FormField
+                control={form.control}
+                name="targetCount"
+                rules={{ 
+                  required: '目标次数不能为空',
+                  min: { value: 1, message: '目标次数必须大于0' },
+                  max: { value: selectedFrequency === 'weekly' ? 7 : 31, message: `目标次数不能超过${selectedFrequency === 'weekly' ? 7 : 31}` }
+                }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {selectedFrequency === 'weekly' ? '每周目标次数' : '每月目标次数'}
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder={selectedFrequency === 'weekly' ? '3' : '10'}
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}

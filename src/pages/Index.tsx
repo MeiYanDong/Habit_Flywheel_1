@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,6 +58,35 @@ class DataManager {
     const completions = this.getCompletions();
     const today = new Date().toISOString().split('T')[0];
     return completions.some(c => c.habitId === habitId && c.date === today);
+  }
+
+  static getHabitCompletionProgress(habitId, frequency, targetCount = 1) {
+    const completions = this.getCompletions();
+    const now = new Date();
+    let startDate;
+    
+    if (frequency === 'daily') {
+      return this.isHabitCompletedToday(habitId) ? 1 : 0;
+    } else if (frequency === 'weekly') {
+      // 获取本周开始日期（周一）
+      const dayOfWeek = now.getDay();
+      const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+      startDate = new Date(now.setDate(diff));
+    } else if (frequency === 'monthly') {
+      // 获取本月开始日期
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    
+    const startDateStr = startDate.toISOString().split('T')[0];
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    const periodCompletions = completions.filter(c => 
+      c.habitId === habitId && 
+      c.date >= startDateStr && 
+      c.date <= todayStr
+    );
+    
+    return periodCompletions.length;
   }
 }
 
@@ -147,6 +175,8 @@ const Index = () => {
       description: habitData.description,
       energyValue: habitData.energyValue,
       bindingRewardId: habitData.bindingRewardId || null,
+      frequency: habitData.frequency || 'daily',
+      targetCount: habitData.targetCount || 1,
       isArchived: false,
       createdAt: new Date().toISOString()
     };
@@ -171,6 +201,8 @@ const Index = () => {
             description: habitData.description,
             energyValue: habitData.energyValue,
             bindingRewardId: habitData.bindingRewardId || null,
+            frequency: habitData.frequency || 'daily',
+            targetCount: habitData.targetCount || 1,
           }
         : habit
     );
@@ -226,7 +258,20 @@ const Index = () => {
   // 完成习惯
   const completeHabit = (habitId) => {
     const habit = habits.find(h => h.id === habitId);
-    if (!habit || DataManager.isHabitCompletedToday(habitId)) return;
+    if (!habit) return;
+
+    // 检查是否可以完成（根据频率和目标次数）
+    const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency, habit.targetCount);
+    const targetCount = habit.frequency === 'daily' ? 1 : habit.targetCount;
+    
+    if (currentProgress >= targetCount) {
+      toast({
+        title: "本周期目标已完成",
+        description: "您已完成本周期的目标，请等待下个周期开始",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // 添加完成记录
     DataManager.addCompletion(habitId, habit.energyValue, habit.bindingRewardId);
@@ -248,6 +293,11 @@ const Index = () => {
 
     // 刷新完成记录
     setCompletions(DataManager.getCompletions());
+    
+    toast({
+      title: "习惯完成",
+      description: `恭喜完成"${habit.name}"，获得 ${habit.energyValue} 能量！`,
+    });
   };
 
   // 菜单项配置
@@ -265,9 +315,6 @@ const Index = () => {
     const today = new Date().toISOString().split('T')[0];
     const todayCompletions = completions.filter(c => c.date === today);
     const activeHabits = habits.filter(h => !h.isArchived);
-    const completedHabits = activeHabits.filter(h => 
-      todayCompletions.some(c => c.habitId === h.id)
-    );
     const totalEnergyToday = todayCompletions.reduce((sum, c) => sum + c.energy, 0);
 
     return (
@@ -281,9 +328,9 @@ const Index = () => {
           <CardContent className="p-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-purple-700 mb-2">
-                {completedHabits.length}/{activeHabits.length}
+                {todayCompletions.length}
               </div>
-              <div className="text-sm text-gray-600 mb-4">今日任务完成</div>
+              <div className="text-sm text-gray-600 mb-4">今日已完成</div>
               <div className="flex items-center justify-center space-x-2">
                 <Zap className="h-5 w-5 text-amber-500" />
                 <span className="text-lg font-medium">已获得 {totalEnergyToday} 能量</span>
@@ -294,8 +341,17 @@ const Index = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {activeHabits.map(habit => {
-            const isCompleted = DataManager.isHabitCompletedToday(habit.id);
+            const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency, habit.targetCount);
+            const targetCount = habit.frequency === 'daily' ? 1 : habit.targetCount;
+            const isCompleted = currentProgress >= targetCount;
             const boundReward = rewards.find(r => r.id === habit.bindingRewardId);
+            
+            const getFrequencyText = () => {
+              if (habit.frequency === 'daily') return '每日';
+              if (habit.frequency === 'weekly') return `每周 ${habit.targetCount || 1} 次`;
+              if (habit.frequency === 'monthly') return `每月 ${habit.targetCount || 1} 次`;
+              return '每日';
+            };
             
             return (
               <Card key={habit.id} className={cn(
@@ -305,10 +361,17 @@ const Index = () => {
                 <CardContent className="p-4">
                   <div className="text-center space-y-3">
                     <h3 className="font-medium text-gray-900">{habit.name}</h3>
+                    <div className="text-xs text-gray-500">{getFrequencyText()}</div>
                     <div className="flex items-center justify-center space-x-1">
                       <Zap className="h-4 w-4 text-amber-500" />
                       <span className="text-sm text-gray-600">+{habit.energyValue}</span>
                     </div>
+                    
+                    {habit.frequency !== 'daily' && (
+                      <div className="text-sm text-gray-600">
+                        进度: {currentProgress}/{targetCount}
+                      </div>
+                    )}
                     
                     {isCompleted ? (
                       <Badge className="bg-green-100 text-green-800 border-green-200">
@@ -423,7 +486,16 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredHabits.map(habit => {
                 const boundReward = rewards.find(r => r.id === habit.bindingRewardId);
-                const todayCompleted = DataManager.isHabitCompletedToday(habit.id);
+                const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency, habit.targetCount);
+                const targetCount = habit.frequency === 'daily' ? 1 : habit.targetCount;
+                const isCompleted = currentProgress >= targetCount;
+                
+                const getFrequencyText = () => {
+                  if (habit.frequency === 'daily') return '每日';
+                  if (habit.frequency === 'weekly') return `每周 ${habit.targetCount || 1} 次`;
+                  if (habit.frequency === 'monthly') return `每月 ${habit.targetCount || 1} 次`;
+                  return '每日';
+                };
                 
                 return (
                   <Card key={habit.id} className={cn(
@@ -443,17 +515,23 @@ const Index = () => {
                             {habit.description && (
                               <p className="text-sm text-gray-600 mb-2">{habit.description}</p>
                             )}
+                            <div className="text-xs text-gray-500 mb-2">{getFrequencyText()}</div>
                             <div className="flex items-center space-x-2">
                               <div className="flex items-center space-x-1">
                                 <Zap className="h-4 w-4 text-amber-500" />
                                 <span className="text-sm font-medium">+{habit.energyValue}</span>
                               </div>
-                              {todayCompleted && !habit.isArchived && (
+                              {isCompleted && !habit.isArchived && (
                                 <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
-                                  今日已完成
+                                  本周期已完成
                                 </Badge>
                               )}
                             </div>
+                            {habit.frequency !== 'daily' && !habit.isArchived && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                本周期进度: {currentProgress}/{targetCount}
+                              </div>
+                            )}
                           </div>
                           
                           <div className="flex space-x-1">
