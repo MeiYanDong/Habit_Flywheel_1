@@ -630,7 +630,7 @@ const Index = () => {
                     )}
                     
                     {isCompleted ? (
-                      <Badge className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:border-green-700">
+                      <Badge className="bg-green-100 text-green-800 border-green-200 dark:bg-green-800 dark:text-green-100">
                         ✅ 已完成
                       </Badge>
                     ) : (
@@ -1115,62 +1115,43 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* 顶部导航栏 */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-40 shadow-sm">
-        <div className="flex items-center justify-between h-full px-6">
-          {/* 左侧：Logo和标题 */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <div className="text-2xl">🌟</div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  习惯飞轮
-                </h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  让每一份努力都精准浇灌你的目标
-                </p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      {/* 左侧边栏 */}
+      <div className="w-64 bg-white dark:bg-gray-800 shadow-lg border-r dark:border-gray-700">
+        <div className="p-6">
+          <div className="text-center mb-8">
+            <div className="text-2xl mb-2">🌟</div>
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100 leading-tight">
+              习惯飞轮
+            </h1>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+              让每一份努力<br />都精准浇灌你的目标
+            </p>
           </div>
-
-          {/* 右侧：功能按钮 */}
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              当前模块: {menuItems.find(item => item.id === activeModule)?.label}
-            </div>
-          </div>
+          
+          <nav className="space-y-2">
+            {menuItems.map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveModule(item.id)}
+                className={cn(
+                  "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  activeModule === item.id
+                    ? "bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                )}
+              >
+                <item.icon className="h-5 w-5" />
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </nav>
         </div>
-      </header>
+      </div>
 
-      <div className="flex">
-        {/* 左侧边栏 */}
-        <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-30 shadow-lg">
-          <div className="p-6">
-            <nav className="space-y-2">
-              {menuItems.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveModule(item.id)}
-                  className={cn(
-                    "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                    activeModule === item.id
-                      ? "bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
-                  )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
-        </aside>
-
-        {/* 右侧内容区 */}
-        <main className="flex-1 ml-64 mt-16 p-6 overflow-y-auto">
-          {renderContent()}
-        </main>
+      {/* 右侧内容区 */}
+      <div className="flex-1 p-6 overflow-y-auto">
+        {renderContent()}
       </div>
     </div>
   );
