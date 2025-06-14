@@ -431,6 +431,124 @@ const Index = () => {
     DataManager.saveHabits(updatedHabits);
   };
 
+  // 数据导出功能
+  const handleExportData = () => {
+    const exportData = {
+      habits: DataManager.getHabits(),
+      rewards: DataManager.getRewards(),
+      completions: DataManager.getCompletions(),
+      exportDate: new Date().toISOString(),
+      version: '1.0.0'
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `habit-flywheel-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // 数据导入功能
+  const handleImportData = (importedData: any) => {
+    try {
+      if (importedData.habits) {
+        setHabits(importedData.habits);
+        DataManager.saveHabits(importedData.habits);
+      }
+      
+      if (importedData.rewards) {
+        setRewards(importedData.rewards);
+        DataManager.saveRewards(importedData.rewards);
+      }
+      
+      if (importedData.completions) {
+        setCompletions(importedData.completions);
+        DataManager.saveCompletions(importedData.completions);
+      }
+    } catch (error) {
+      console.error('导入数据时出错:', error);
+      throw error;
+    }
+  };
+
+  // 清除所有数据
+  const handleClearAllData = () => {
+    setHabits([]);
+    setRewards([]);
+    setCompletions([]);
+    DataManager.saveHabits([]);
+    DataManager.saveRewards([]);
+    DataManager.saveCompletions([]);
+  };
+
+  // 重置为默认数据
+  const handleResetToDefaults = () => {
+    const defaultHabits = [
+      {
+        id: 'h_001',
+        name: '每日阅读',
+        energyValue: 10,
+        bindingRewardId: 'r_001',
+        frequency: 'daily',
+        targetCount: 1,
+        isArchived: false,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'h_002',
+        name: '健身锻炼',
+        energyValue: 20,
+        bindingRewardId: 'r_002',
+        frequency: 'weekly',
+        targetCount: 3,
+        isArchived: false,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'h_003',
+        name: '学习编程',
+        energyValue: 30,
+        bindingRewardId: 'r_001',
+        frequency: 'monthly',
+        targetCount: 15,
+        isArchived: false,
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    const defaultRewards = [
+      {
+        id: 'r_001',
+        name: 'iPhone 15 Pro',
+        energyCost: 1000,
+        currentEnergy: 120,
+        isRedeemed: false,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'r_002',
+        name: 'ChatGPT Plus会员',
+        energyCost: 200,
+        currentEnergy: 60,
+        isRedeemed: false,
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    setHabits(defaultHabits);
+    setRewards(defaultRewards);
+    setCompletions([]);
+    DataManager.saveHabits(defaultHabits);
+    DataManager.saveRewards(defaultRewards);
+    DataManager.saveCompletions([]);
+  };
+
   // 菜单项配置
   const menuItems = [
     { id: 'today', label: '今日习惯', icon: Calendar },
@@ -972,7 +1090,14 @@ const Index = () => {
           />
         );
       case 'settings':
-        return renderPlaceholderModule('设置中心', '个性化设置，让体验更贴心');
+        return (
+          <SettingsCenter
+            onExportData={handleExportData}
+            onImportData={handleImportData}
+            onClearAllData={handleClearAllData}
+            onResetToDefaults={handleResetToDefaults}
+          />
+        );
       default:
         return renderTodayModule();
     }
