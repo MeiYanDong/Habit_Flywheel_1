@@ -8,26 +8,69 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Mail, Lock, User } from 'lucide-react';
+import { Loader2, Mail, Lock, CheckCircle } from 'lucide-react';
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // 处理邮箱确认回调
+    const handleAuthCallback = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
+      
+      if (accessToken && refreshToken && type === 'signup') {
+        setIsProcessingAuth(true);
+        try {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+          
+          if (error) throw error;
+          
+          toast({
+            title: "邮箱验证成功",
+            description: "您的账户已成功激活，欢迎使用习惯飞轮！",
+          });
+          
+          // 清除URL中的认证参数
+          window.history.replaceState({}, document.title, '/');
+          
+          // 导航到主页
+          navigate('/');
+        } catch (error) {
+          console.error('Authentication callback error:', error);
+          toast({
+            title: "验证失败",
+            description: "邮箱验证失败，请重试登录",
+            variant: "destructive",
+          });
+        } finally {
+          setIsProcessingAuth(false);
+        }
+      }
+    };
+
     // 检查用户是否已经登录
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      if (session && !window.location.hash) {
         navigate('/');
       }
     };
+
+    handleAuthCallback();
     checkUser();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +133,22 @@ const Auth = () => {
     }
     setLoading(false);
   };
+
+  // 如果正在处理认证回调，显示处理中状态
+  if (isProcessingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-amber-50 dark:from-purple-900/20 dark:to-amber-900/20 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center justify-center p-8">
+            <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
+            <h2 className="text-xl font-semibold mb-2">验证中...</h2>
+            <p className="text-gray-600 text-center mb-4">正在验证您的邮箱，请稍候</p>
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-amber-50 dark:from-purple-900/20 dark:to-amber-900/20 flex items-center justify-center p-4">
