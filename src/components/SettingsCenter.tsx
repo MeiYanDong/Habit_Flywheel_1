@@ -1,12 +1,13 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Settings, Download, Upload, Trash2, RotateCcw, Bell, Palette, Database } from 'lucide-react';
+import { Download, Upload, Trash2, RotateCcw, Bell, Palette, Database } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface SettingsCenterProps {
   onExportData: () => void;
@@ -21,11 +22,17 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
   onClearAllData,
   onResetToDefaults
 }) => {
-  const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [showProgress, setShowProgress] = useState(true);
-  const [showStats, setShowStats] = useState(true);
   const { toast } = useToast();
+  const {
+    notifications,
+    darkMode,
+    showProgress,
+    showStats,
+    setNotifications,
+    setDarkMode,
+    setShowProgress,
+    setShowStats,
+  } = useSettings();
 
   const handleImport = () => {
     const input = document.createElement('input');
@@ -89,23 +96,23 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">设置中心</h2>
-        <p className="text-gray-600">个性化设置，让体验更贴心</p>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">设置中心</h2>
+        <p className="text-gray-600 dark:text-gray-400">个性化设置，让体验更贴心</p>
       </div>
 
       {/* 通知设置 */}
-      <Card>
+      <Card className="dark:bg-gray-800 dark:border-gray-700">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Bell className="h-5 w-5 text-purple-600" />
-            <span>通知设置</span>
+            <span className="dark:text-gray-100">通知设置</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="notifications">推送通知</Label>
-              <p className="text-sm text-gray-600">接收习惯提醒和成就通知</p>
+              <Label htmlFor="notifications" className="dark:text-gray-200">推送通知</Label>
+              <p className="text-sm text-gray-600 dark:text-gray-400">接收习惯提醒和成就通知</p>
             </div>
             <Switch
               id="notifications"
@@ -117,18 +124,18 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
       </Card>
 
       {/* 界面设置 */}
-      <Card>
+      <Card className="dark:bg-gray-800 dark:border-gray-700">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Palette className="h-5 w-5 text-purple-600" />
-            <span>界面设置</span>
+            <span className="dark:text-gray-100">界面设置</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="darkMode">深色模式</Label>
-              <p className="text-sm text-gray-600">切换到深色主题</p>
+              <Label htmlFor="darkMode" className="dark:text-gray-200">深色模式</Label>
+              <p className="text-sm text-gray-600 dark:text-gray-400">切换到深色主题</p>
             </div>
             <Switch
               id="darkMode"
@@ -139,8 +146,8 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
 
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="showProgress">显示进度条</Label>
-              <p className="text-sm text-gray-600">在奖励卡片中显示进度条</p>
+              <Label htmlFor="showProgress" className="dark:text-gray-200">显示进度条</Label>
+              <p className="text-sm text-gray-600 dark:text-gray-400">在奖励卡片中显示进度条</p>
             </div>
             <Switch
               id="showProgress"
@@ -151,8 +158,8 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
 
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="showStats">显示统计数据</Label>
-              <p className="text-sm text-gray-600">在主页显示今日统计</p>
+              <Label htmlFor="showStats" className="dark:text-gray-200">显示统计数据</Label>
+              <p className="text-sm text-gray-600 dark:text-gray-400">在主页显示今日统计</p>
             </div>
             <Switch
               id="showStats"
@@ -164,11 +171,11 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
       </Card>
 
       {/* 数据管理 */}
-      <Card>
+      <Card className="dark:bg-gray-800 dark:border-gray-700">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Database className="h-5 w-5 text-purple-600" />
-            <span>数据管理</span>
+            <span className="dark:text-gray-100">数据管理</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -176,7 +183,7 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
             <Button
               variant="outline"
               onClick={handleExport}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 dark:border-gray-600 dark:text-gray-200"
             >
               <Download className="h-4 w-4" />
               <span>导出数据</span>
@@ -185,7 +192,7 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
             <Button
               variant="outline"
               onClick={handleImport}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 dark:border-gray-600 dark:text-gray-200"
             >
               <Upload className="h-4 w-4" />
               <span>导入数据</span>
@@ -194,7 +201,7 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
             <Button
               variant="outline"
               onClick={handleReset}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 dark:border-gray-600 dark:text-gray-200"
             >
               <RotateCcw className="h-4 w-4" />
               <span>重置默认</span>
@@ -203,15 +210,15 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
             <Button
               variant="outline"
               onClick={handleClearData}
-              className="flex items-center space-x-2 text-red-600 border-red-300 hover:bg-red-50"
+              className="flex items-center space-x-2 text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-900"
             >
               <Trash2 className="h-4 w-4" />
               <span>清除所有数据</span>
             </Button>
           </div>
 
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-sm text-amber-800">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg dark:bg-amber-900/20 dark:border-amber-700">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
               <strong>提示：</strong> 数据导出功能会将您的所有习惯、奖励和完成记录保存为JSON文件，建议定期备份。
             </p>
           </div>
@@ -219,22 +226,22 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
       </Card>
 
       {/* 应用信息 */}
-      <Card>
+      <Card className="dark:bg-gray-800 dark:border-gray-700">
         <CardHeader>
-          <CardTitle>应用信息</CardTitle>
+          <CardTitle className="dark:text-gray-100">应用信息</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex justify-between">
-            <span className="text-gray-600">版本</span>
+            <span className="text-gray-600 dark:text-gray-400">版本</span>
             <Badge variant="secondary">v1.0.0</Badge>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">最后更新</span>
-            <span className="text-sm">2024-06-14</span>
+            <span className="text-gray-600 dark:text-gray-400">最后更新</span>
+            <span className="text-sm dark:text-gray-300">2024-06-14</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">开发者</span>
-            <span className="text-sm">习惯飞轮团队</span>
+            <span className="text-gray-600 dark:text-gray-400">开发者</span>
+            <span className="text-sm dark:text-gray-300">习惯飞轮团队</span>
           </div>
         </CardContent>
       </Card>

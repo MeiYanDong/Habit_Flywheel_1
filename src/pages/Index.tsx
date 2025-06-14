@@ -11,6 +11,7 @@ import BindingManager from '@/components/BindingManager';
 import HistoryView from '@/components/HistoryView';
 import SettingsCenter from '@/components/SettingsCenter';
 import { useToast } from '@/hooks/use-toast';
+import { useSettings } from '@/contexts/SettingsContext';
 
 // 数据管理类
 class DataManager {
@@ -114,6 +115,7 @@ class DataManager {
 
 // 主应用组件
 const Index = () => {
+  const { showProgress, showStats, notifications } = useSettings();
   const [activeModule, setActiveModule] = useState('today');
   const [habits, setHabits] = useState([]);
   const [rewards, setRewards] = useState([]);
@@ -324,10 +326,13 @@ const Index = () => {
     // 刷新完成记录
     setCompletions(DataManager.getCompletions());
     
-    toast({
-      title: "习惯完成",
-      description: `恭喜完成"${habit.name}"，获得 ${habit.energyValue} 能量！`,
-    });
+    // 根据通知设置决定是否显示通知
+    if (notifications) {
+      toast({
+        title: "习惯完成",
+        description: `恭喜完成"${habit.name}"，获得 ${habit.energyValue} 能量！`,
+      });
+    }
   };
 
   // 创建新奖励
@@ -569,24 +574,26 @@ const Index = () => {
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">今日习惯</h2>
-          <p className="text-gray-600">专注今天，让每一次打卡都充满成就感</p>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">今日习惯</h2>
+          <p className="text-gray-600 dark:text-gray-400">专注今天，让每一次打卡都充满成就感</p>
         </div>
 
-        <Card className="bg-gradient-to-r from-purple-50 to-amber-50 border-none">
-          <CardContent className="p-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-700 mb-2">
-                {todayCompletions.length}
+        {showStats && (
+          <Card className="bg-gradient-to-r from-purple-50 to-amber-50 border-none dark:from-purple-900/20 dark:to-amber-900/20 dark:border dark:border-gray-700">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-700 dark:text-purple-300 mb-2">
+                  {todayCompletions.length}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">今日已完成</div>
+                <div className="flex items-center justify-center space-x-2">
+                  <Zap className="h-5 w-5 text-amber-500" />
+                  <span className="text-lg font-medium dark:text-gray-200">已获得 {totalEnergyToday} 能量</span>
+                </div>
               </div>
-              <div className="text-sm text-gray-600 mb-4">今日已完成</div>
-              <div className="flex items-center justify-center space-x-2">
-                <Zap className="h-5 w-5 text-amber-500" />
-                <span className="text-lg font-medium">已获得 {totalEnergyToday} 能量</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {activeHabits.map(habit => {
@@ -604,26 +611,26 @@ const Index = () => {
             
             return (
               <Card key={habit.id} className={cn(
-                "transition-all duration-200 hover:shadow-lg",
-                isCompleted ? "bg-green-50 border-green-200" : "hover:shadow-md"
+                "transition-all duration-200 hover:shadow-lg dark:bg-gray-800 dark:border-gray-700",
+                isCompleted ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700" : "hover:shadow-md"
               )}>
                 <CardContent className="p-4">
                   <div className="text-center space-y-3">
-                    <h3 className="font-medium text-gray-900">{habit.name}</h3>
-                    <div className="text-xs text-gray-500">{getFrequencyText()}</div>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">{habit.name}</h3>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{getFrequencyText()}</div>
                     <div className="flex items-center justify-center space-x-1">
                       <Zap className="h-4 w-4 text-amber-500" />
-                      <span className="text-sm text-gray-600">+{habit.energyValue}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">+{habit.energyValue}</span>
                     </div>
                     
                     {habit.frequency !== 'daily' && (
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
                         进度: {currentProgress}/{targetCount}
                       </div>
                     )}
                     
                     {isCompleted ? (
-                      <Badge className="bg-green-100 text-green-800 border-green-200">
+                      <Badge className="bg-green-100 text-green-800 border-green-200 dark:bg-green-800 dark:text-green-100">
                         ✅ 已完成
                       </Badge>
                     ) : (
@@ -636,7 +643,7 @@ const Index = () => {
                     )}
                     
                     {boundReward && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
                         → {boundReward.name}
                       </div>
                     )}
@@ -687,12 +694,12 @@ const Index = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">习惯管理</h2>
-            <p className="text-gray-600">管理您的习惯，让每一个小目标都成为成长的动力</p>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">习惯管理</h2>
+            <p className="text-gray-600 dark:text-gray-400">管理您的习惯，让每一个小目标都成为成长的动力</p>
           </div>
           <div className="flex items-center space-x-4">
             <Select value={habitFilter} onValueChange={setHabitFilter}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-32 dark:border-gray-600">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -713,16 +720,16 @@ const Index = () => {
 
         {/* 习惯列表 */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
             {habitFilter === 'active' && `活跃习惯 (${filteredHabits.length})`}
             {habitFilter === 'archived' && `归档习惯 (${filteredHabits.length})`}
             {habitFilter === 'all' && `全部习惯 (${filteredHabits.length})`}
           </h3>
           
           {filteredHabits.length === 0 ? (
-            <Card className="p-8">
-              <div className="text-center text-gray-500">
-                <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <Card className="p-8 dark:bg-gray-800 dark:border-gray-700">
+              <div className="text-center text-gray-500 dark:text-gray-400">
+                <Target className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                 <p>
                   {habitFilter === 'active' && '还没有活跃的习惯'}
                   {habitFilter === 'archived' && '还没有归档的习惯'}
@@ -893,12 +900,12 @@ const Index = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">奖励管理</h2>
-            <p className="text-gray-600">设定目标，用能量点亮梦想</p>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">奖励管理</h2>
+            <p className="text-gray-600 dark:text-gray-400">设定目标，用能量点亮梦想</p>
           </div>
           <div className="flex items-center space-x-4">
             <Select value={rewardFilter} onValueChange={setRewardFilter}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-32 dark:border-gray-600">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -919,16 +926,16 @@ const Index = () => {
 
         {/* 奖励列表 */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
             {rewardFilter === 'redeemable' && `可兑换奖励 (${filteredRewards.length})`}
             {rewardFilter === 'redeemed' && `已兑换奖励 (${filteredRewards.length})`}
             {rewardFilter === 'all' && `全部奖励 (${filteredRewards.length})`}
           </h3>
           
           {filteredRewards.length === 0 ? (
-            <Card className="p-8">
-              <div className="text-center text-gray-500">
-                <Gift className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <Card className="p-8 dark:bg-gray-800 dark:border-gray-700">
+              <div className="text-center text-gray-500 dark:text-gray-400">
+                <Gift className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                 <p>
                   {rewardFilter === 'redeemable' && '还没有可兑换的奖励'}
                   {rewardFilter === 'redeemed' && '还没有已兑换的奖励'}
@@ -945,7 +952,7 @@ const Index = () => {
                 
                 return (
                   <Card key={reward.id} className={cn(
-                    "transition-all duration-200 hover:shadow-lg",
+                    "transition-all duration-200 hover:shadow-lg dark:bg-gray-800 dark:border-gray-700",
                     canRedeem && !reward.isRedeemed && "ring-2 ring-amber-400",
                     reward.isRedeemed && "opacity-60"
                   )}>
@@ -954,9 +961,9 @@ const Index = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
-                              <h3 className="font-medium text-gray-900">{reward.name}</h3>
+                              <h3 className="font-medium text-gray-900 dark:text-gray-100">{reward.name}</h3>
                               {reward.isRedeemed && (
-                                <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                                <Badge className="bg-green-100 text-green-800 border-green-200 text-xs dark:bg-green-800 dark:text-green-100">
                                   已兑换
                                 </Badge>
                               )}
@@ -974,6 +981,7 @@ const Index = () => {
                                 setEditingReward(reward);
                                 setRewardFormOpen(true);
                               }}
+                              className="dark:border-gray-600"
                             >
                               <Edit className="h-3 w-3" />
                             </Button>
@@ -981,6 +989,7 @@ const Index = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => deleteReward(reward.id)}
+                              className="dark:border-gray-600"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -989,22 +998,24 @@ const Index = () => {
                         
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
-                            <span>进度</span>
-                            <span>{Math.round(progress)}%</span>
+                            <span className="dark:text-gray-300">进度</span>
+                            <span className="dark:text-gray-300">{Math.round(progress)}%</span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-gradient-to-r from-purple-500 to-amber-500 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
-                          <div className="text-center text-sm text-gray-600">
+                          {showProgress && (
+                            <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                              <div 
+                                className="bg-gradient-to-r from-purple-500 to-amber-500 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${progress}%` }}
+                              />
+                            </div>
+                          )}
+                          <div className="text-center text-sm text-gray-600 dark:text-gray-400">
                             {reward.currentEnergy}/{reward.energyCost}⚡
                           </div>
                         </div>
                         
                         {reward.isRedeemed ? (
-                          <Button variant="outline" className="w-full" disabled>
+                          <Button variant="outline" className="w-full dark:border-gray-600" disabled>
                             ✅ 已兑换
                           </Button>
                         ) : canRedeem ? (
@@ -1015,7 +1026,7 @@ const Index = () => {
                             🎉 立即兑换
                           </Button>
                         ) : (
-                          <Button variant="outline" className="w-full">
+                          <Button variant="outline" className="w-full dark:border-gray-600">
                             🎯 继续努力
                           </Button>
                         )}
@@ -1058,12 +1069,12 @@ const Index = () => {
   const renderPlaceholderModule = (title, description) => (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">{title}</h2>
-        <p className="text-gray-600">{description}</p>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{title}</h2>
+        <p className="text-gray-600 dark:text-gray-400">{description}</p>
       </div>
-      <Card className="p-8">
-        <div className="text-center text-gray-500">
-          <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+      <Card className="p-8 dark:bg-gray-800 dark:border-gray-700">
+        <div className="text-center text-gray-500 dark:text-gray-400">
+          <Target className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
           <p>该模块正在开发中...</p>
           <p className="text-sm mt-2">敬请期待更多功能！</p>
         </div>
@@ -1104,16 +1115,16 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
       {/* 左侧边栏 */}
-      <div className="w-64 bg-white shadow-lg border-r">
+      <div className="w-64 bg-white dark:bg-gray-800 shadow-lg border-r dark:border-gray-700">
         <div className="p-6">
           <div className="text-center mb-8">
             <div className="text-2xl mb-2">🌟</div>
-            <h1 className="text-lg font-semibold text-gray-900 leading-tight">
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100 leading-tight">
               习惯飞轮
             </h1>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
               让每一份努力<br />都精准浇灌你的目标
             </p>
           </div>
@@ -1126,8 +1137,8 @@ const Index = () => {
                 className={cn(
                   "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   activeModule === item.id
-                    ? "bg-purple-100 text-purple-700 border border-purple-200"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    ? "bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                 )}
               >
                 <item.icon className="h-5 w-5" />
