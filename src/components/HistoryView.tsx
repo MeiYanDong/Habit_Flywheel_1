@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -267,7 +266,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
                   if (!habit) return null;
 
                   return (
-                    <div key={habitId} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg min-w-0">
+                    <div key={habitId} className="flex items-center justify-between p-2 sm:p-3 ranking-item rounded-lg min-w-0">
                       <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                         <div className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${
                           index === 0 ? 'bg-yellow-500' : 
