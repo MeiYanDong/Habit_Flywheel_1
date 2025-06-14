@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { BarChart3, Calendar, TrendingUp, Zap, CheckCircle } from 'lucide-react';
 
 interface HistoryViewProps {
@@ -85,8 +87,8 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
     };
   }, [completions, timeRange, selectedHabit]);
 
-  // 获取最近7天的数据用于趋势显示
-  const recentDays = useMemo(() => {
+  // 获取最近7天的数据用于折线图显示
+  const chartData = useMemo(() => {
     const days = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
@@ -95,12 +97,24 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
       const dayStats = stats.dailyStats[dateStr] || { completions: 0, energy: 0 };
       days.push({
         date: dateStr,
-        dateDisplay: date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }),
-        ...dayStats
+        day: date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }),
+        completions: dayStats.completions,
+        energy: dayStats.energy
       });
     }
     return days;
   }, [stats.dailyStats]);
+
+  const chartConfig = {
+    completions: {
+      label: "完成次数",
+      color: "#8b5cf6"
+    },
+    energy: {
+      label: "获得能量", 
+      color: "#f59e0b"
+    }
+  };
 
   const getTimeRangeText = () => {
     switch (timeRange) {
@@ -182,7 +196,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
         </Card>
       </div>
 
-      {/* 趋势图 */}
+      {/* 折线图趋势 */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -191,28 +205,43 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-end justify-between h-32 px-2">
-              {recentDays.map((day, index) => {
-                const maxCompletions = Math.max(...recentDays.map(d => d.completions), 1);
-                const height = Math.max((day.completions / maxCompletions) * 100, 4);
-                
-                return (
-                  <div key={day.date} className="flex flex-col items-center space-y-2">
-                    <div className="text-xs text-gray-600">{day.completions}</div>
-                    <div
-                      className="w-8 bg-gradient-to-t from-purple-500 to-purple-300 rounded-t transition-all duration-300"
-                      style={{ height: `${height}%` }}
-                    />
-                    <div className="text-xs text-gray-500">{day.dateDisplay}</div>
-                  </div>
-                );
-              })}
-            </div>
-            
-            <div className="text-center text-sm text-gray-600">
-              {getTimeRangeText()}完成次数趋势
-            </div>
+          <ChartContainer config={chartConfig} className="h-[300px]">
+            <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <XAxis 
+                dataKey="day" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: '#6B7280' }}
+              />
+              <YAxis 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: '#6B7280' }}
+              />
+              <ChartTooltip 
+                content={<ChartTooltipContent />}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="completions" 
+                stroke="var(--color-completions)"
+                strokeWidth={3}
+                dot={{ fill: 'var(--color-completions)', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: 'var(--color-completions)', strokeWidth: 2 }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="energy" 
+                stroke="var(--color-energy)"
+                strokeWidth={3}
+                dot={{ fill: 'var(--color-energy)', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: 'var(--color-energy)', strokeWidth: 2 }}
+                strokeDasharray="5 5"
+              />
+            </LineChart>
+          </ChartContainer>
+          <div className="text-center text-sm text-gray-600 mt-4">
+            实线表示完成次数，虚线表示获得能量
           </div>
         </CardContent>
       </Card>
