@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
-import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2 } from 'lucide-react';
+import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2, Filter } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import HabitForm from '@/components/HabitForm';
 import { useToast } from '@/hooks/use-toast';
@@ -68,6 +70,8 @@ const Index = () => {
   const [completions, setCompletions] = useState([]);
   const [habitFormOpen, setHabitFormOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState(null);
+  const [habitFilter, setHabitFilter] = useState('active'); // 'active', 'archived', 'all'
+  const [rewardFilter, setRewardFilter] = useState('all'); // 'all', 'redeemed', 'unredeemed'
   const { toast } = useToast();
 
   // 初始化数据
@@ -336,8 +340,21 @@ const Index = () => {
 
   // 渲染习惯管理模块
   const renderHabitsModule = () => {
-    const activeHabits = habits.filter(h => !h.isArchived);
-    const archivedHabits = habits.filter(h => h.isArchived);
+    // 根据筛选条件过滤习惯
+    const getFilteredHabits = () => {
+      switch (habitFilter) {
+        case 'active':
+          return habits.filter(h => !h.isArchived);
+        case 'archived':
+          return habits.filter(h => h.isArchived);
+        case 'all':
+          return habits;
+        default:
+          return habits.filter(h => !h.isArchived);
+      }
+    };
+
+    const filteredHabits = getFilteredHabits();
 
     return (
       <div className="space-y-6">
@@ -346,42 +363,77 @@ const Index = () => {
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">习惯管理</h2>
             <p className="text-gray-600">管理您的习惯，让每一个小目标都成为成长的动力</p>
           </div>
-          <Button 
-            className="bg-purple-600 hover:bg-purple-700"
-            onClick={() => setHabitFormOpen(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            添加习惯
-          </Button>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <ToggleGroup 
+                type="single" 
+                value={habitFilter} 
+                onValueChange={(value) => value && setHabitFilter(value)}
+                className="border rounded-lg p-1"
+              >
+                <ToggleGroupItem value="active" className="text-sm">
+                  活跃习惯
+                </ToggleGroupItem>
+                <ToggleGroupItem value="archived" className="text-sm">
+                  已归档
+                </ToggleGroupItem>
+                <ToggleGroupItem value="all" className="text-sm">
+                  全部习惯
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={() => setHabitFormOpen(true)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              添加习惯
+            </Button>
+          </div>
         </div>
 
-        {/* 活跃习惯 */}
+        {/* 习惯列表 */}
         <div>
           <h3 className="text-lg font-medium text-gray-900 mb-4">
-            活跃习惯 ({activeHabits.length})
+            {habitFilter === 'active' && `活跃习惯 (${filteredHabits.length})`}
+            {habitFilter === 'archived' && `归档习惯 (${filteredHabits.length})`}
+            {habitFilter === 'all' && `全部习惯 (${filteredHabits.length})`}
           </h3>
           
-          {activeHabits.length === 0 ? (
+          {filteredHabits.length === 0 ? (
             <Card className="p-8">
               <div className="text-center text-gray-500">
                 <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p>还没有活跃的习惯</p>
+                <p>
+                  {habitFilter === 'active' && '还没有活跃的习惯'}
+                  {habitFilter === 'archived' && '还没有归档的习惯'}
+                  {habitFilter === 'all' && '还没有任何习惯'}
+                </p>
                 <p className="text-sm mt-2">点击"添加习惯"开始您的第一个习惯吧！</p>
               </div>
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {activeHabits.map(habit => {
+              {filteredHabits.map(habit => {
                 const boundReward = rewards.find(r => r.id === habit.bindingRewardId);
                 const todayCompleted = DataManager.isHabitCompletedToday(habit.id);
                 
                 return (
-                  <Card key={habit.id} className="hover:shadow-lg transition-shadow">
+                  <Card key={habit.id} className={cn(
+                    "hover:shadow-lg transition-shadow",
+                    habit.isArchived && "opacity-60"
+                  )}>
                     <CardContent className="p-4">
                       <div className="space-y-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 mb-1">{habit.name}</h4>
+                            <div className="flex items-center space-x-2">
+                              <h4 className="font-medium text-gray-900">{habit.name}</h4>
+                              {habit.isArchived && (
+                                <Badge variant="secondary" className="text-xs">已归档</Badge>
+                              )}
+                            </div>
                             {habit.description && (
                               <p className="text-sm text-gray-600 mb-2">{habit.description}</p>
                             )}
@@ -390,7 +442,7 @@ const Index = () => {
                                 <Zap className="h-4 w-4 text-amber-500" />
                                 <span className="text-sm font-medium">+{habit.energyValue}</span>
                               </div>
-                              {todayCompleted && (
+                              {todayCompleted && !habit.isArchived && (
                                 <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
                                   今日已完成
                                 </Badge>
@@ -438,7 +490,7 @@ const Index = () => {
                             onClick={() => toggleArchiveHabit(habit.id)}
                             className="flex-1"
                           >
-                            归档
+                            {habit.isArchived ? '恢复' : '归档'}
                           </Button>
                         </div>
                       </div>
@@ -449,53 +501,6 @@ const Index = () => {
             </div>
           )}
         </div>
-
-        {/* 归档习惯 */}
-        {archivedHabits.length > 0 && (
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              归档习惯 ({archivedHabits.length})
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {archivedHabits.map(habit => (
-                <Card key={habit.id} className="opacity-60 hover:opacity-80 transition-opacity">
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-700">{habit.name}</h4>
-                          <div className="flex items-center space-x-1 mt-1">
-                            <Zap className="h-4 w-4 text-amber-400" />
-                            <span className="text-sm text-gray-600">+{habit.energyValue}</span>
-                          </div>
-                        </div>
-                        <Badge variant="secondary" className="text-xs">已归档</Badge>
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => toggleArchiveHabit(habit.id)}
-                          className="flex-1"
-                        >
-                          恢复
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => deleteHabit(habit.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* 习惯表单对话框 */}
         <HabitForm
@@ -515,6 +520,21 @@ const Index = () => {
 
   // 渲染奖励管理模块
   const renderRewardsModule = () => {
+    // 根据筛选条件过滤奖励
+    const getFilteredRewards = () => {
+      switch (rewardFilter) {
+        case 'redeemed':
+          return rewards.filter(r => r.isRedeemed);
+        case 'unredeemed':
+          return rewards.filter(r => !r.isRedeemed);
+        case 'all':
+        default:
+          return rewards;
+      }
+    };
+
+    const filteredRewards = getFilteredRewards();
+
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -522,26 +542,55 @@ const Index = () => {
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">奖励管理</h2>
             <p className="text-gray-600">设定目标，用能量点亮梦想</p>
           </div>
-          <Button className="bg-purple-600 hover:bg-purple-700">
-            <Plus className="h-4 w-4 mr-2" />
-            添加奖励
-          </Button>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <ToggleGroup 
+                type="single" 
+                value={rewardFilter} 
+                onValueChange={(value) => value && setRewardFilter(value)}
+                className="border rounded-lg p-1"
+              >
+                <ToggleGroupItem value="all" className="text-sm">
+                  全部奖励
+                </ToggleGroupItem>
+                <ToggleGroupItem value="unredeemed" className="text-sm">
+                  未兑换
+                </ToggleGroupItem>
+                <ToggleGroupItem value="redeemed" className="text-sm">
+                  已兑换
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+            <Button className="bg-purple-600 hover:bg-purple-700">
+              <Plus className="h-4 w-4 mr-2" />
+              添加奖励
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {rewards.map(reward => {
+          {filteredRewards.map(reward => {
             const progress = Math.min((reward.currentEnergy / reward.energyCost) * 100, 100);
             const canRedeem = reward.currentEnergy >= reward.energyCost;
             
             return (
               <Card key={reward.id} className={cn(
                 "transition-all duration-200 hover:shadow-lg",
-                canRedeem && "ring-2 ring-amber-400"
+                canRedeem && !reward.isRedeemed && "ring-2 ring-amber-400",
+                reward.isRedeemed && "opacity-60"
               )}>
                 <CardContent className="p-4">
                   <div className="space-y-4">
                     <div className="text-center">
-                      <h3 className="font-medium text-gray-900">{reward.name}</h3>
+                      <div className="flex items-center justify-center space-x-2">
+                        <h3 className="font-medium text-gray-900">{reward.name}</h3>
+                        {reward.isRedeemed && (
+                          <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                            已兑换
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     
                     <div className="space-y-2">
@@ -560,7 +609,11 @@ const Index = () => {
                       </div>
                     </div>
                     
-                    {canRedeem ? (
+                    {reward.isRedeemed ? (
+                      <Button variant="outline" className="w-full" disabled>
+                        ✅ 已兑换
+                      </Button>
+                    ) : canRedeem ? (
                       <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
                         🎉 立即兑换
                       </Button>
