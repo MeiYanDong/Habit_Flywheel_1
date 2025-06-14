@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -418,6 +417,18 @@ const Index = () => {
       title: "奖励兑换成功",
       description: `恭喜您兑换了"${reward.name}"！`,
     });
+  };
+
+  // 更新习惯的绑定奖励
+  const updateHabitBinding = (habitId: string, updates: { bindingRewardId?: string }) => {
+    const updatedHabits = habits.map(habit => 
+      habit.id === habitId 
+        ? { ...habit, ...updates }
+        : habit
+    );
+    
+    setHabits(updatedHabits);
+    DataManager.saveHabits(updatedHabits);
   };
 
   // 菜单项配置
@@ -893,6 +904,17 @@ const Index = () => {
     );
   };
 
+  // 渲染绑定管理模块
+  const renderBindingsModule = () => {
+    return (
+      <BindingManager
+        habits={habits}
+        rewards={rewards}
+        onUpdateHabit={updateHabitBinding}
+      />
+    );
+  };
+
   // 渲染其他模块的占位内容
   const renderPlaceholderModule = (title, description) => (
     <div className="space-y-6">
@@ -920,7 +942,7 @@ const Index = () => {
       case 'rewards':
         return renderRewardsModule();
       case 'bindings':
-        return renderPlaceholderModule('绑定管理', '将习惯绑定到奖励，让每次努力都有明确目标');
+        return renderBindingsModule();
       case 'history':
         return renderPlaceholderModule('历史记录', '回顾成长轨迹，数据见证努力');
       case 'settings':
