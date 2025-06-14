@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import HabitForm from '@/components/HabitForm';
+import RewardForm from '@/components/RewardForm';
 import { useToast } from '@/hooks/use-toast';
 
 // 数据管理类
@@ -104,7 +104,9 @@ const Index = () => {
   const [rewards, setRewards] = useState([]);
   const [completions, setCompletions] = useState([]);
   const [habitFormOpen, setHabitFormOpen] = useState(false);
+  const [rewardFormOpen, setRewardFormOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState(null);
+  const [editingReward, setEditingReward] = useState(null);
   const [habitFilter, setHabitFilter] = useState('active'); // 'active', 'archived', 'all'
   const [rewardFilter, setRewardFilter] = useState('redeemable'); // 'redeemable', 'redeemed', 'all'
   const { toast } = useToast();
@@ -304,6 +306,95 @@ const Index = () => {
     toast({
       title: "习惯完成",
       description: `恭喜完成"${habit.name}"，获得 ${habit.energyValue} 能量！`,
+    });
+  };
+
+  // 创建新奖励
+  const createReward = (rewardData) => {
+    const newReward = {
+      id: `r_${Date.now()}`,
+      name: rewardData.name,
+      description: rewardData.description,
+      energyCost: rewardData.energyCost,
+      currentEnergy: 0,
+      isRedeemed: false,
+      createdAt: new Date().toISOString()
+    };
+
+    const updatedRewards = [...rewards, newReward];
+    setRewards(updatedRewards);
+    DataManager.saveRewards(updatedRewards);
+    
+    toast({
+      title: "奖励创建成功",
+      description: `"${rewardData.name}" 已添加到您的奖励列表中`,
+    });
+  };
+
+  // 更新奖励
+  const updateReward = (rewardData) => {
+    const updatedRewards = rewards.map(reward => 
+      reward.id === editingReward.id 
+        ? { 
+            ...reward, 
+            name: rewardData.name,
+            description: rewardData.description,
+            energyCost: rewardData.energyCost,
+          }
+        : reward
+    );
+    
+    setRewards(updatedRewards);
+    DataManager.saveRewards(updatedRewards);
+    setEditingReward(null);
+    
+    toast({
+      title: "奖励更新成功",
+      description: `"${rewardData.name}" 的信息已更新`,
+    });
+  };
+
+  // 删除奖励
+  const deleteReward = (rewardId) => {
+    const rewardToDelete = rewards.find(r => r.id === rewardId);
+    
+    const updatedRewards = rewards.filter(reward => reward.id !== rewardId);
+    setRewards(updatedRewards);
+    DataManager.saveRewards(updatedRewards);
+    
+    // 解除相关习惯的绑定
+    const updatedHabits = habits.map(habit => 
+      habit.bindingRewardId === rewardId 
+        ? { ...habit, bindingRewardId: null }
+        : habit
+    );
+    setHabits(updatedHabits);
+    DataManager.saveHabits(updatedHabits);
+    
+    toast({
+      title: "奖励已删除",
+      description: `"${rewardToDelete?.name}" 及其相关绑定已被删除`,
+      variant: "destructive",
+    });
+  };
+
+  // 兑换奖励
+  const redeemReward = (rewardId) => {
+    const reward = rewards.find(r => r.id === rewardId);
+    if (!reward || reward.currentEnergy < reward.energyCost) return;
+
+    const updatedRewards = rewards.map(r => 
+      r.id === rewardId 
+        ? { ...r, isRedeemed: true, redeemedAt: new Date().toISOString() }
+        : r
+    );
+    
+    setRewards(updatedRewards);
+    DataManager.saveRewards(updatedRewards);
+    
+    toast({
+      title: "奖励兑换成功",
+      description: `恭喜您兑换了"${reward.name}"！`,
     });
   };
 
@@ -665,72 +756,129 @@ const Index = () => {
                 <SelectItem value="all">全部奖励</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="bg-purple-600 hover:bg-purple-700">
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={() => setRewardFormOpen(true)}
+            >
               <Plus className="h-4 w-4 mr-2" />
               添加奖励
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredRewards.map(reward => {
-            const progress = Math.min((reward.currentEnergy / reward.energyCost) * 100, 100);
-            const canRedeem = reward.currentEnergy >= reward.energyCost;
-            
-            return (
-              <Card key={reward.id} className={cn(
-                "transition-all duration-200 hover:shadow-lg",
-                canRedeem && !reward.isRedeemed && "ring-2 ring-amber-400",
-                reward.isRedeemed && "opacity-60"
-              )}>
-                <CardContent className="p-4">
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <div className="flex items-center justify-center space-x-2">
-                        <h3 className="font-medium text-gray-900">{reward.name}</h3>
-                        {reward.isRedeemed && (
-                          <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
-                            已兑换
-                          </Badge>
-                        )}
+        {filteredRewards.length === 0 ? (
+          <Card className="p-8">
+            <div className="text-center text-gray-500">
+              <Gift className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p>
+                {rewardFilter === 'redeemable' && '还没有可兑换的奖励'}
+                {rewardFilter === 'redeemed' && '还没有已兑换的奖励'}
+                {rewardFilter === 'all' && '还没有任何奖励'}
+              </p>
+              <p className="text-sm mt-2">点击"添加奖励"创建您的第一个奖励吧！</p>
+            </div>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredRewards.map(reward => {
+              const progress = Math.min((reward.currentEnergy / reward.energyCost) * 100, 100);
+              const canRedeem = reward.currentEnergy >= reward.energyCost;
+              
+              return (
+                <Card key={reward.id} className={cn(
+                  "transition-all duration-200 hover:shadow-lg",
+                  canRedeem && !reward.isRedeemed && "ring-2 ring-amber-400",
+                  reward.isRedeemed && "opacity-60"
+                )}>
+                  <CardContent className="p-4">
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <h3 className="font-medium text-gray-900">{reward.name}</h3>
+                            {reward.isRedeemed && (
+                              <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                                已兑换
+                              </Badge>
+                            )}
+                          </div>
+                          {reward.description && (
+                            <p className="text-sm text-gray-600 mt-1">{reward.description}</p>
+                          )}
+                        </div>
+                        
+                        <div className="flex space-x-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingReward(reward);
+                              setRewardFormOpen(true);
+                            }}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => deleteReward(reward.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>进度</span>
+                          <span>{Math.round(progress)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-gradient-to-r from-purple-500 to-amber-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                        <div className="text-center text-sm text-gray-600">
+                          {reward.currentEnergy}/{reward.energyCost}⚡
+                        </div>
+                      </div>
+                      
+                      {reward.isRedeemed ? (
+                        <Button variant="outline" className="w-full" disabled>
+                          ✅ 已兑换
+                        </Button>
+                      ) : canRedeem ? (
+                        <Button 
+                          className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+                          onClick={() => redeemReward(reward.id)}
+                        >
+                          🎉 立即兑换
+                        </Button>
+                      ) : (
+                        <Button variant="outline" className="w-full">
+                          🎯 继续努力
+                        </Button>
+                      )}
                     </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>进度</span>
-                        <span>{Math.round(progress)}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-gradient-to-r from-purple-500 to-amber-500 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                      <div className="text-center text-sm text-gray-600">
-                        {reward.currentEnergy}/{reward.energyCost}⚡
-                      </div>
-                    </div>
-                    
-                    {reward.isRedeemed ? (
-                      <Button variant="outline" className="w-full" disabled>
-                        ✅ 已兑换
-                      </Button>
-                    ) : canRedeem ? (
-                      <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
-                        🎉 立即兑换
-                      </Button>
-                    ) : (
-                      <Button variant="outline" className="w-full">
-                        🎯 继续努力
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 奖励表单对话框 */}
+        <RewardForm
+          isOpen={rewardFormOpen}
+          onClose={() => {
+            setRewardFormOpen(false);
+            setEditingReward(null);
+          }}
+          onSubmit={editingReward ? updateReward : createReward}
+          initialData={editingReward}
+          isEditing={!!editingReward}
+        />
       </div>
     );
   };
