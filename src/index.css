@@ -24,47 +24,38 @@
     --error: 239 68 68;                /* #EF4444 */
     --info: 59 130 246;                /* #3B82F6 */
 
-    /* 背景和前景 */
+    /* 浅色模式变量 */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
-    /* 卡片 */
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
 
-    /* 弹出层 */
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* 主要颜色 */
     --primary: var(--primary-purple);
     --primary-foreground: 210 40% 98%;
 
-    /* 次要颜色 */
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    /* 静默色 */
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* 强调色 */
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
-    /* 破坏性 */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    /* 边框和输入 */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: var(--primary-purple);
 
-    /* 圆角 */
     --radius: 0.75rem;
 
-    /* 边栏 */
+    /* 侧边栏 */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -76,33 +67,52 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    /* 深色模式背景和前景 */
+    --background: 222.2 84% 4.9%;       /* 深色背景 */
+    --foreground: 210 40% 98%;          /* 浅色文字 */
+    
+    /* 卡片在深色模式下 */
+    --card: 217.2 32.6% 17.5%;          /* 深色卡片背景 */
+    --card-foreground: 210 40% 98%;     /* 卡片文字 */
+    
+    /* 弹出层 */
+    --popover: 217.2 32.6% 17.5%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
+    
+    /* 主色调适配 */
+    --primary: 167 139 250;             /* 浅紫色作为主色 */
     --primary-foreground: 222.2 47.4% 11.2%;
+    
+    /* 次要颜色 */
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
+    
+    /* 静默颜色 */
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
+    
+    /* 强调色 */
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    
+    /* 破坏性颜色调整 */
+    --destructive: 0 62.8% 50%;         /* 稍微亮一点的红色 */
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* 边框和输入 */
+    --border: 217.2 32.6% 25%;          /* 稍微亮一点的边框 */
+    --input: 217.2 32.6% 20%;           /* 输入框背景 */
+    --ring: 167 139 250;                /* 焦点环颜色 */
+    
+    /* 侧边栏深色模式 */
+    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 167 139 250;
+    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 25%;
+    --sidebar-ring: 167 139 250;
   }
 }
 
@@ -112,11 +122,11 @@
   }
   
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-300;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
-  /* 苹果风格的滚动条 */
+  /* 优化的滚动条 - 深色模式适配 */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -129,35 +139,44 @@
   ::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 4px;
+    transition: background 0.2s;
   }
 
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.3);
   }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
 }
 
 @layer components {
-  /* 习惯卡片样式 */
+  /* 习惯卡片样式 - 深色模式优化 */
   .habit-card {
-    @apply bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200;
+    @apply bg-card border border-border shadow-sm hover:shadow-md transition-all duration-200;
   }
 
   .habit-card.completed {
-    @apply bg-green-50 border-green-200;
+    @apply bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700;
   }
 
-  /* 奖励卡片样式 */
+  /* 奖励卡片样式 - 深色模式优化 */
   .reward-card {
-    @apply bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200;
+    @apply bg-card border border-border shadow-sm hover:shadow-md transition-all duration-200;
   }
 
   .reward-card.redeemable {
-    @apply ring-2 ring-amber-400 ring-opacity-50;
+    @apply ring-2 ring-amber-400 ring-opacity-50 dark:ring-amber-500 dark:ring-opacity-60;
   }
 
-  /* 进度条样式 */
+  /* 进度条样式 - 深色模式优化 */
   .progress-bar {
-    @apply w-full bg-gray-200 rounded-full h-2 overflow-hidden;
+    @apply w-full bg-muted rounded-full h-2 overflow-hidden;
   }
 
   .progress-fill {
@@ -203,7 +222,7 @@
     @apply transition-transform duration-200 hover:scale-105;
   }
 
-  /* 渐变背景 */
+  /* 渐变背景 - 深色模式适配 */
   .gradient-purple-gold {
     background: linear-gradient(135deg, rgb(124 58 237) 0%, rgb(245 158 11) 100%);
   }
@@ -212,14 +231,23 @@
     background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(245, 158, 11, 0.05) 100%);
   }
 
-  /* 玻璃态效果 */
+  .dark .gradient-card {
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(251, 191, 36, 0.1) 100%);
+  }
+
+  /* 玻璃态效果 - 深色模式优化 */
   .glass-effect {
     backdrop-filter: blur(10px);
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
-  /* 阴影系统 */
+  .dark .glass-effect {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* 阴影系统 - 深色模式适配 */
   .shadow-apple-sm {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
@@ -236,17 +264,73 @@
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
   }
 
-  /* 按钮样式增强 */
+  .dark .shadow-apple-sm {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .shadow-apple-md {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .dark .shadow-apple-lg {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+  }
+
+  .dark .shadow-apple-xl {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  }
+
+  /* 按钮样式增强 - 深色模式优化 */
   .btn-primary {
     @apply bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+
+  .dark .btn-primary {
+    @apply bg-purple-500 hover:bg-purple-600;
   }
 
   .btn-secondary {
     @apply bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
   }
 
+  .dark .btn-secondary {
+    @apply bg-amber-400 hover:bg-amber-500 text-black;
+  }
+
   .btn-outline {
-    @apply border border-gray-300 hover:border-purple-400 text-gray-700 hover:text-purple-700 font-medium py-2 px-4 rounded-lg transition-all duration-200 bg-white hover:bg-purple-50;
+    @apply border border-border hover:border-purple-400 text-foreground hover:text-purple-700 font-medium py-2 px-4 rounded-lg transition-all duration-200 bg-background hover:bg-purple-50;
+  }
+
+  .dark .btn-outline {
+    @apply hover:text-purple-300 hover:bg-purple-900/20;
+  }
+
+  /* 深色模式下的文本渐变优化 */
+  .text-gradient-purple-gold {
+    background: linear-gradient(135deg, rgb(124 58 237), rgb(245 158 11));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .dark .text-gradient-purple-gold {
+    background: linear-gradient(135deg, rgb(167 139 250), rgb(251 191 36));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* 边框渐变 - 深色模式适配 */
+  .border-gradient {
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, rgb(124 58 237), rgb(245 158 11)) border-box;
+    border: 2px solid transparent;
+  }
+
+  .dark .border-gradient {
+    background: linear-gradient(rgb(31 41 55), rgb(31 41 55)) padding-box,
+                linear-gradient(135deg, rgb(167 139 250), rgb(251 191 36)) border-box;
+    border: 2px solid transparent;
   }
 }
 
@@ -265,7 +349,7 @@
   }
 }
 
-/* 深色模式适配 */
+/* 深色模式偏好设置适配 */
 @media (prefers-color-scheme: dark) {
   .auto-dark {
     @apply dark:bg-gray-900 dark:text-white dark:border-gray-700;
@@ -302,6 +386,19 @@
   }
 }
 
+.dark .animate-glow {
+  animation: glow-dark 2s ease-in-out infinite;
+}
+
+@keyframes glow-dark {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(167, 139, 250, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(167, 139, 250, 0.7);
+  }
+}
+
 .animate-fade-in-up {
   animation: fadeInUp 0.6s ease-out;
 }
@@ -314,16 +411,29 @@
   animation: glow 2s ease-in-out infinite;
 }
 
-/* 特殊效果 */
-.text-gradient-purple-gold {
-  background: linear-gradient(135deg, rgb(124 58 237), rgb(245 158 11));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* 深色模式下的表单元素优化 */
+.dark input, .dark textarea, .dark select {
+  @apply bg-input border-border text-foreground;
 }
 
-.border-gradient {
-  background: linear-gradient(white, white) padding-box,
-              linear-gradient(135deg, rgb(124 58 237), rgb(245 158 11)) border-box;
-  border: 2px solid transparent;
+.dark input:focus, .dark textarea:focus, .dark select:focus {
+  @apply ring-2 ring-ring ring-offset-2 ring-offset-background;
+}
+
+/* 深色模式下的代码块样式 */
+.dark pre, .dark code {
+  @apply bg-muted text-muted-foreground;
+}
+
+/* 深色模式下的表格样式 */
+.dark table {
+  @apply border-border;
+}
+
+.dark th, .dark td {
+  @apply border-border;
+}
+
+.dark th {
+  @apply bg-muted text-muted-foreground;
 }

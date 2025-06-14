@@ -30,7 +30,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('habitFlywheel_darkMode');
-    return saved ? JSON.parse(saved) : false;
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    // 检查系统偏好
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
   
   const [showProgress, setShowProgress] = useState(() => {
@@ -50,11 +54,24 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     localStorage.setItem('habitFlywheel_darkMode', JSON.stringify(darkMode));
-    // 应用深色模式
+    
+    // 平滑过渡应用深色模式
+    const root = document.documentElement;
+    
     if (darkMode) {
-      document.documentElement.classList.add('dark');
+      root.classList.add('dark');
+      // 为深色模式设置元主题颜色
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) {
+        metaTheme.setAttribute('content', '#1f2937');
+      }
     } else {
-      document.documentElement.classList.remove('dark');
+      root.classList.remove('dark');
+      // 为浅色模式设置元主题颜色
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) {
+        metaTheme.setAttribute('content', '#ffffff');
+      }
     }
   }, [darkMode]);
 
@@ -65,6 +82,29 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     localStorage.setItem('habitFlywheel_showStats', JSON.stringify(showStats));
   }, [showStats]);
+
+  // 监听系统主题变化
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      // 只有在用户没有手动设置过时才跟随系统
+      const savedDarkMode = localStorage.getItem('habitFlywheel_darkMode');
+      if (!savedDarkMode) {
+        setDarkMode(e.matches);
+      }
+    };
+
+    // 现代浏览器使用 addEventListener
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    } else {
+      // 兼容旧浏览器
+      mediaQuery.addListener(handleChange);
+      return () => mediaQuery.removeListener(handleChange);
+    }
+  }, []);
 
   const value = {
     notifications,
