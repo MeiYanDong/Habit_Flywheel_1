@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Settings, Download, Upload, Trash2, RotateCcw, Bell, Palette, Database } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface SettingsCenterProps {
   onExportData: () => void;
@@ -21,10 +22,16 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
   onClearAllData,
   onResetToDefaults
 }) => {
-  const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [showProgress, setShowProgress] = useState(true);
-  const [showStats, setShowStats] = useState(true);
+  const { 
+    notifications, 
+    darkMode, 
+    showProgress, 
+    showStats, 
+    energyAnimations,
+    compactMode,
+    updateSetting, 
+    resetSettings 
+  } = useSettings();
   const { toast } = useToast();
 
   const handleImport = () => {
@@ -86,11 +93,21 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
     }
   };
 
+  const handleResetSettings = () => {
+    if (window.confirm('确定要重置所有设置为默认值吗？')) {
+      resetSettings();
+      toast({
+        title: "设置已重置",
+        description: "所有设置已恢复为默认值",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">设置中心</h2>
-        <p className="text-gray-600">个性化设置，让体验更贴心</p>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">设置中心</h2>
+        <p className="text-gray-600 dark:text-gray-400">个性化设置，让体验更贴心</p>
       </div>
 
       {/* 通知设置 */}
@@ -105,12 +122,12 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="notifications">推送通知</Label>
-              <p className="text-sm text-gray-600">接收习惯提醒和成就通知</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">接收习惯提醒和成就通知</p>
             </div>
             <Switch
               id="notifications"
               checked={notifications}
-              onCheckedChange={setNotifications}
+              onCheckedChange={(value) => updateSetting('notifications', value)}
             />
           </div>
         </CardContent>
@@ -128,36 +145,60 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="darkMode">深色模式</Label>
-              <p className="text-sm text-gray-600">切换到深色主题</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">切换到深色主题</p>
             </div>
             <Switch
               id="darkMode"
               checked={darkMode}
-              onCheckedChange={setDarkMode}
+              onCheckedChange={(value) => updateSetting('darkMode', value)}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="showProgress">显示进度条</Label>
-              <p className="text-sm text-gray-600">在奖励卡片中显示进度条</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">在奖励卡片中显示进度条</p>
             </div>
             <Switch
               id="showProgress"
               checked={showProgress}
-              onCheckedChange={setShowProgress}
+              onCheckedChange={(value) => updateSetting('showProgress', value)}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="showStats">显示统计数据</Label>
-              <p className="text-sm text-gray-600">在主页显示今日统计</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">在主页显示今日统计</p>
             </div>
             <Switch
               id="showStats"
               checked={showStats}
-              onCheckedChange={setShowStats}
+              onCheckedChange={(value) => updateSetting('showStats', value)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="energyAnimations">能量动画</Label>
+              <p className="text-sm text-gray-600 dark:text-gray-400">显示能量获得动画效果</p>
+            </div>
+            <Switch
+              id="energyAnimations"
+              checked={energyAnimations}
+              onCheckedChange={(value) => updateSetting('energyAnimations', value)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="compactMode">紧凑模式</Label>
+              <p className="text-sm text-gray-600 dark:text-gray-400">使用更紧凑的界面布局</p>
+            </div>
+            <Switch
+              id="compactMode"
+              checked={compactMode}
+              onCheckedChange={(value) => updateSetting('compactMode', value)}
             />
           </div>
         </CardContent>
@@ -197,7 +238,7 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
               className="flex items-center space-x-2"
             >
               <RotateCcw className="h-4 w-4" />
-              <span>重置默认</span>
+              <span>重置数据</span>
             </Button>
 
             <Button
@@ -210,8 +251,19 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
             </Button>
           </div>
 
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-sm text-amber-800">
+          <div className="border-t pt-4">
+            <Button
+              variant="outline"
+              onClick={handleResetSettings}
+              className="w-full flex items-center space-x-2"
+            >
+              <Settings className="h-4 w-4" />
+              <span>重置所有设置</span>
+            </Button>
+          </div>
+
+          <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
               <strong>提示：</strong> 数据导出功能会将您的所有习惯、奖励和完成记录保存为JSON文件，建议定期备份。
             </p>
           </div>
@@ -225,15 +277,15 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex justify-between">
-            <span className="text-gray-600">版本</span>
+            <span className="text-gray-600 dark:text-gray-400">版本</span>
             <Badge variant="secondary">v1.0.0</Badge>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">最后更新</span>
+            <span className="text-gray-600 dark:text-gray-400">最后更新</span>
             <span className="text-sm">2024-06-14</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">开发者</span>
+            <span className="text-gray-600 dark:text-gray-400">开发者</span>
             <span className="text-sm">习惯飞轮团队</span>
           </div>
         </CardContent>

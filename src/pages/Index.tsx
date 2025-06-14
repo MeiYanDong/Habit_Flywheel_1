@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import HabitForm from '@/components/HabitForm';
 import RewardForm from '@/components/RewardForm';
@@ -11,6 +12,7 @@ import BindingManager from '@/components/BindingManager';
 import HistoryView from '@/components/HistoryView';
 import SettingsCenter from '@/components/SettingsCenter';
 import { useToast } from '@/hooks/use-toast';
+import { useSettings } from '@/contexts/SettingsContext';
 
 // 数据管理类
 class DataManager {
@@ -125,6 +127,7 @@ const Index = () => {
   const [habitFilter, setHabitFilter] = useState('active'); // 'active', 'archived', 'all'
   const [rewardFilter, setRewardFilter] = useState('redeemable'); // 'redeemable', 'redeemed', 'all'
   const { toast } = useToast();
+  const { showStats, showProgress, energyAnimations, compactMode, notifications } = useSettings();
 
   // 初始化数据
   useEffect(() => {
@@ -290,7 +293,6 @@ const Index = () => {
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
 
-    // 检查是否可以完成（根据频率和目标次数）
     const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency, habit.targetCount);
     const targetCount = habit.frequency === 'daily' ? 1 : habit.targetCount;
     
@@ -303,10 +305,8 @@ const Index = () => {
       return;
     }
 
-    // 添加完成记录
     DataManager.addCompletion(habitId, habit.energyValue, habit.bindingRewardId);
 
-    // 如果有绑定奖励，增加奖励能量
     if (habit.bindingRewardId) {
       const updatedRewards = rewards.map(reward => {
         if (reward.id === habit.bindingRewardId) {
@@ -321,13 +321,21 @@ const Index = () => {
       DataManager.saveRewards(updatedRewards);
     }
 
-    // 刷新完成记录
     setCompletions(DataManager.getCompletions());
     
-    toast({
-      title: "习惯完成",
-      description: `恭喜完成"${habit.name}"，获得 ${habit.energyValue} 能量！`,
-    });
+    if (notifications) {
+      if (energyAnimations) {
+        toast({
+          title: "🎉 习惯完成！",
+          description: `恭喜完成"${habit.name}"，获得 ${habit.energyValue} ⚡ 能量！`,
+        });
+      } else {
+        toast({
+          title: "习惯完成",
+          description: `恭喜完成"${habit.name}"，获得 ${habit.energyValue} 能量！`,
+        });
+      }
+    }
   };
 
   // 创建新奖励
@@ -559,7 +567,7 @@ const Index = () => {
     { id: 'settings', label: '设置中心', icon: Settings }
   ];
 
-  // 渲染今日习惯模块
+  // 渲染今日习惯模块（应用设置）
   const renderTodayModule = () => {
     const today = new Date().toISOString().split('T')[0];
     const todayCompletions = completions.filter(c => c.date === today);
@@ -569,26 +577,34 @@ const Index = () => {
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">今日习惯</h2>
-          <p className="text-gray-600">专注今天，让每一次打卡都充满成就感</p>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">今日习惯</h2>
+          <p className="text-gray-600 dark:text-gray-400">专注今天，让每一次打卡都充满成就感</p>
         </div>
 
-        <Card className="bg-gradient-to-r from-purple-50 to-amber-50 border-none">
-          <CardContent className="p-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-700 mb-2">
-                {todayCompletions.length}
+        {/* 统计卡片 - 根据设置显示 */}
+        {showStats && (
+          <Card className="bg-gradient-to-r from-purple-50 to-amber-50 dark:from-purple-900/20 dark:to-amber-900/20 border-none">
+            <CardContent className={cn("p-6", compactMode && "p-4")}>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-700 dark:text-purple-300 mb-2">
+                  {todayCompletions.length}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">今日已完成</div>
+                <div className="flex items-center justify-center space-x-2">
+                  <Zap className="h-5 w-5 text-amber-500" />
+                  <span className="text-lg font-medium">
+                    已获得 {energyAnimations ? '⚡' : ''} {totalEnergyToday} 能量
+                  </span>
+                </div>
               </div>
-              <div className="text-sm text-gray-600 mb-4">今日已完成</div>
-              <div className="flex items-center justify-center space-x-2">
-                <Zap className="h-5 w-5 text-amber-500" />
-                <span className="text-lg font-medium">已获得 {totalEnergyToday} 能量</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={cn(
+          "grid gap-4",
+          compactMode ? "grid-cols-1 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+        )}>
           {activeHabits.map(habit => {
             const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency || 'daily', habit.targetCount || 1);
             const targetCount = habit.frequency === 'daily' ? 1 : (habit.targetCount || 1);
@@ -605,38 +621,42 @@ const Index = () => {
             return (
               <Card key={habit.id} className={cn(
                 "transition-all duration-200 hover:shadow-lg",
-                isCompleted ? "bg-green-50 border-green-200" : "hover:shadow-md"
+                isCompleted ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "hover:shadow-md",
+                compactMode && "p-2"
               )}>
-                <CardContent className="p-4">
+                <CardContent className={cn("p-4", compactMode && "p-3")}>
                   <div className="text-center space-y-3">
-                    <h3 className="font-medium text-gray-900">{habit.name}</h3>
-                    <div className="text-xs text-gray-500">{getFrequencyText()}</div>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">{habit.name}</h3>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{getFrequencyText()}</div>
                     <div className="flex items-center justify-center space-x-1">
                       <Zap className="h-4 w-4 text-amber-500" />
-                      <span className="text-sm text-gray-600">+{habit.energyValue}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        +{habit.energyValue}{energyAnimations ? '⚡' : ''}
+                      </span>
                     </div>
                     
                     {habit.frequency !== 'daily' && (
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
                         进度: {currentProgress}/{targetCount}
                       </div>
                     )}
                     
                     {isCompleted ? (
-                      <Badge className="bg-green-100 text-green-800 border-green-200">
+                      <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800">
                         ✅ 已完成
                       </Badge>
                     ) : (
                       <Button 
                         onClick={() => completeHabit(habit.id)}
                         className="w-full bg-purple-600 hover:bg-purple-700"
+                        size={compactMode ? "sm" : "default"}
                       >
                         🎯 立即打卡
                       </Button>
                     )}
                     
                     {boundReward && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
                         → {boundReward.name}
                       </div>
                     )}
@@ -650,7 +670,7 @@ const Index = () => {
     );
   };
 
-  // 渲染习惯管理模块
+  // 渲染习惯管理模块（应用进度条设置）
   const renderHabitsModule = () => {
     // 根据筛选条件过滤和排序习惯
     const getFilteredAndSortedHabits = () => {
@@ -687,8 +707,8 @@ const Index = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">习惯管理</h2>
-            <p className="text-gray-600">管理您的习惯，让每一个小目标都成为成长的动力</p>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">习惯管理</h2>
+            <p className="text-gray-600 dark:text-gray-400">管理您的习惯，让每一个小目标都成为成长的动力</p>
           </div>
           <div className="flex items-center space-x-4">
             <Select value={habitFilter} onValueChange={setHabitFilter}>
@@ -713,7 +733,7 @@ const Index = () => {
 
         {/* 习惯列表 */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
             {habitFilter === 'active' && `活跃习惯 (${filteredHabits.length})`}
             {habitFilter === 'archived' && `归档习惯 (${filteredHabits.length})`}
             {habitFilter === 'all' && `全部习惯 (${filteredHabits.length})`}
@@ -721,8 +741,8 @@ const Index = () => {
           
           {filteredHabits.length === 0 ? (
             <Card className="p-8">
-              <div className="text-center text-gray-500">
-                <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <div className="text-center text-gray-500 dark:text-gray-400">
+                <Target className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                 <p>
                   {habitFilter === 'active' && '还没有活跃的习惯'}
                   {habitFilter === 'archived' && '还没有归档的习惯'}
@@ -732,7 +752,10 @@ const Index = () => {
               </div>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className={cn(
+              "grid gap-4",
+              compactMode ? "grid-cols-1 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+            )}>
               {filteredHabits.map(habit => {
                 const boundReward = rewards.find(r => r.id === habit.bindingRewardId);
                 const currentProgress = DataManager.getHabitCompletionProgress(habit.id, habit.frequency || 'daily', habit.targetCount || 1);
@@ -768,7 +791,7 @@ const Index = () => {
                             <div className="flex items-center space-x-2">
                               <div className="flex items-center space-x-1">
                                 <Zap className="h-4 w-4 text-amber-500" />
-                                <span className="text-sm font-medium">+{habit.energyValue}</span>
+                                <span className="text-sm font-medium">+{habit.energyValue}{energyAnimations ? '⚡' : ''}</span>
                               </div>
                               {isCompleted && !habit.isArchived && (
                                 <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
@@ -851,7 +874,7 @@ const Index = () => {
     );
   };
 
-  // 渲染奖励管理模块
+  // 渲染奖励管理模块（应用进度条设置）
   const renderRewardsModule = () => {
     // 根据筛选条件过滤和排序奖励
     const getFilteredAndSortedRewards = () => {
@@ -870,7 +893,6 @@ const Index = () => {
           filtered = rewards;
       }
 
-      // 当筛选为全部奖励时，可兑换奖励排在前方，已兑换奖励置后
       if (rewardFilter === 'all') {
         return filtered.sort((a, b) => {
           const aCanRedeem = !a.isRedeemed && a.currentEnergy >= a.energyCost;
@@ -893,8 +915,8 @@ const Index = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">奖励管理</h2>
-            <p className="text-gray-600">设定目标，用能量点亮梦想</p>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">奖励管理</h2>
+            <p className="text-gray-600 dark:text-gray-400">设定目标，用能量点亮梦想</p>
           </div>
           <div className="flex items-center space-x-4">
             <Select value={rewardFilter} onValueChange={setRewardFilter}>
@@ -917,9 +939,8 @@ const Index = () => {
           </div>
         </div>
 
-        {/* 奖励列表 */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
             {rewardFilter === 'redeemable' && `可兑换奖励 (${filteredRewards.length})`}
             {rewardFilter === 'redeemed' && `已兑换奖励 (${filteredRewards.length})`}
             {rewardFilter === 'all' && `全部奖励 (${filteredRewards.length})`}
@@ -927,8 +948,8 @@ const Index = () => {
           
           {filteredRewards.length === 0 ? (
             <Card className="p-8">
-              <div className="text-center text-gray-500">
-                <Gift className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <div className="text-center text-gray-500 dark:text-gray-400">
+                <Gift className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                 <p>
                   {rewardFilter === 'redeemable' && '还没有可兑换的奖励'}
                   {rewardFilter === 'redeemed' && '还没有已兑换的奖励'}
@@ -938,7 +959,10 @@ const Index = () => {
               </div>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className={cn(
+              "grid gap-4",
+              compactMode ? "grid-cols-1 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+            )}>
               {filteredRewards.map(reward => {
                 const progress = Math.min((reward.currentEnergy / reward.energyCost) * 100, 100);
                 const canRedeem = reward.currentEnergy >= reward.energyCost;
@@ -949,14 +973,14 @@ const Index = () => {
                     canRedeem && !reward.isRedeemed && "ring-2 ring-amber-400",
                     reward.isRedeemed && "opacity-60"
                   )}>
-                    <CardContent className="p-4">
+                    <CardContent className={cn("p-4", compactMode && "p-3")}>
                       <div className="space-y-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
-                              <h3 className="font-medium text-gray-900">{reward.name}</h3>
+                              <h3 className="font-medium text-gray-900 dark:text-gray-100">{reward.name}</h3>
                               {reward.isRedeemed && (
-                                <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                                <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800 text-xs">
                                   已兑换
                                 </Badge>
                               )}
@@ -992,14 +1016,14 @@ const Index = () => {
                             <span>进度</span>
                             <span>{Math.round(progress)}%</span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-gradient-to-r from-purple-500 to-amber-500 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
-                          <div className="text-center text-sm text-gray-600">
-                            {reward.currentEnergy}/{reward.energyCost}⚡
+                          
+                          {/* 根据设置显示或隐藏进度条 */}
+                          {showProgress && (
+                            <Progress value={progress} className="h-2" />
+                          )}
+                          
+                          <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                            {reward.currentEnergy}/{reward.energyCost}{energyAnimations ? '⚡' : ' 能量'}
                           </div>
                         </div>
                         
@@ -1011,11 +1035,12 @@ const Index = () => {
                           <Button 
                             className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
                             onClick={() => redeemReward(reward.id)}
+                            size={compactMode ? "sm" : "default"}
                           >
                             🎉 立即兑换
                           </Button>
                         ) : (
-                          <Button variant="outline" className="w-full">
+                          <Button variant="outline" className="w-full" size={compactMode ? "sm" : "default"}>
                             🎯 继续努力
                           </Button>
                         )}
@@ -1058,12 +1083,12 @@ const Index = () => {
   const renderPlaceholderModule = (title, description) => (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">{title}</h2>
-        <p className="text-gray-600">{description}</p>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{title}</h2>
+        <p className="text-gray-600 dark:text-gray-400">{description}</p>
       </div>
       <Card className="p-8">
-        <div className="text-center text-gray-500">
-          <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+        <div className="text-center text-gray-500 dark:text-gray-400">
+          <Target className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
           <p>该模块正在开发中...</p>
           <p className="text-sm mt-2">敬请期待更多功能！</p>
         </div>
@@ -1104,16 +1129,19 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className={cn(
+      "min-h-screen bg-gray-50 dark:bg-gray-900 flex transition-colors duration-200",
+      compactMode && "text-sm"
+    )}>
       {/* 左侧边栏 */}
-      <div className="w-64 bg-white shadow-lg border-r">
-        <div className="p-6">
+      <div className="w-64 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700">
+        <div className={cn("p-6", compactMode && "p-4")}>
           <div className="text-center mb-8">
             <div className="text-2xl mb-2">🌟</div>
-            <h1 className="text-lg font-semibold text-gray-900 leading-tight">
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100 leading-tight">
               习惯飞轮
             </h1>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
               让每一份努力<br />都精准浇灌你的目标
             </p>
           </div>
@@ -1126,8 +1154,9 @@ const Index = () => {
                 className={cn(
                   "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   activeModule === item.id
-                    ? "bg-purple-100 text-purple-700 border border-purple-200"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    ? "bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200",
+                  compactMode && "py-1"
                 )}
               >
                 <item.icon className="h-5 w-5" />
