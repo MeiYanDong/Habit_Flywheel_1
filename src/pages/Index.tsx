@@ -965,7 +965,12 @@ const Index = () => {
       case 'bindings':
         return renderBindingsModule();
       case 'history':
-        return renderPlaceholderModule('历史记录', '回顾成长轨迹，数据见证努力');
+        return (
+          <HistoryView
+            habits={habits}
+            completions={completions}
+          />
+        );
       case 'settings':
         return renderPlaceholderModule('设置中心', '个性化设置，让体验更贴心');
       default:
