@@ -1,34 +1,91 @@
 
-<!--index.wxml-->
+<!--index.wxml - 今日习惯页面-->
 <view class="container">
+  <!-- 页面头部 -->
   <view class="header">
     <text class="main-title">🌟 习惯飞轮</text>
     <text class="sub-title">让每一份努力都精准浇灌你的目标</text>
   </view>
   
-  <view class="today-section">
-    <text class="section-title">今日习惯</text>
-    <view class="habits-grid">
-      <view class="habit-card card" wx:for="{{habits}}" wx:key="id">
-        <text class="habit-name">{{item.name}}</text>
-        <view class="energy-info">
-          <text class="energy-value">+{{item.energy_value}}⚡</text>
-        </view>
-        <button class="btn-primary" bindtap="checkInHabit" data-id="{{item.id}}">
-          🎯 立即打卡
-        </button>
-      </view>
-    </view>
-  </view>
-  
+  <!-- 今日进度统计 -->
   <view class="stats-section" wx:if="{{showStats}}">
     <view class="stat-item">
+      <text class="stat-number">{{completedHabits.size || 0}}/{{habits.length || 0}}</text>
+      <text class="stat-label">今日完成</text>
+    </view>
+    <view class="stat-item">
       <text class="stat-number">{{totalEnergy}}</text>
-      <text class="stat-label">总能量</text>
+      <text class="stat-label">总能量⚡</text>
     </view>
     <view class="stat-item">
       <text class="stat-number">{{streakDays}}</text>
       <text class="stat-label">连续天数</text>
+    </view>
+  </view>
+  
+  <!-- 今日习惯区域 -->
+  <view class="today-section">
+    <text class="section-title">📅 今日习惯</text>
+    
+    <!-- 加载状态 -->
+    <view wx:if="{{isLoading}}" class="loading-container">
+      <view class="loading-text">正在加载习惯...</view>
+    </view>
+    
+    <!-- 习惯列表 -->
+    <view class="habits-grid" wx:else>
+      <view 
+        class="habit-card card {{completedHabits.has ? 'completed' : ''}}" 
+        wx:for="{{habits}}" 
+        wx:key="id"
+        data-id="{{item.id}}"
+      >
+        <!-- 习惯名称 -->
+        <text class="habit-name">{{item.name}}</text>
+        
+        <!-- 习惯描述 -->
+        <text class="habit-description" wx:if="{{item.description}}">{{item.description}}</text>
+        
+        <!-- 能量信息 -->
+        <view class="energy-info">
+          <text class="energy-value">+{{item.energy_value}}<text class="energy-icon">⚡</text></text>
+        </view>
+        
+        <!-- 行动按钮 -->
+        <button 
+          class="btn-primary {{item.isLoading ? 'loading' : ''}}" 
+          bindtap="checkInHabit" 
+          data-id="{{item.id}}"
+          disabled="{{item.isLoading || completedHabits.has(item.id)}}"
+        >
+          <text wx:if="{{item.isLoading}}">打卡中...</text>
+          <text wx:elif="{{completedHabits.has(item.id)}}">✅ 已完成</text>
+          <text wx:else>🎯 立即打卡</text>
+        </button>
+        
+        <!-- 完成动画效果 -->
+        <view 
+          class="completion-effect {{completedHabits.has(item.id) ? 'completed' : ''}}"
+          wx:if="{{completedHabits.has(item.id)}}"
+        >
+        </view>
+      </view>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!isLoading && habits.length === 0}}">
+      <view class="icon">🎯</view>
+      <view class="title">还没有设置习惯</view>
+      <view class="description">开始添加您的第一个习惯，开启成长之旅吧！</view>
+    </view>
+  </view>
+  
+  <!-- 激励信息 -->
+  <view class="motivation-section" wx:if="{{habits.length > 0}}">
+    <view class="motivation-card card">
+      <text class="motivation-text">
+        {{completedHabits.size === habits.length ? '🎉 今日目标达成！明天继续保持！' : '💪 每一次打卡都是向目标迈进的一步'}}
+      </text>
     </view>
   </view>
 </view>
