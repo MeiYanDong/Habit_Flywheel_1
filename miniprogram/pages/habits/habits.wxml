@@ -1,0 +1,251 @@
+
+<!--habits.wxml - 习惯管理页面-->
+<view class="container">
+  <!-- 页面头部 -->
+  <view class="header">
+    <text class="page-title">✅ 习惯管理</text>
+    <text class="page-subtitle">创建和管理您的日常习惯</text>
+  </view>
+
+  <!-- 操作栏 -->
+  <view class="action-bar">
+    <view class="filter-section">
+      <picker bindchange="onFilterChange" value="{{filterIndex}}" range="{{filterOptions}}">
+        <view class="filter-btn">
+          <text class="filter-text">{{filterOptions[filterIndex]}}</text>
+          <text class="filter-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    
+    <button class="add-btn btn-primary" bindtap="showAddHabitForm">
+      <text class="add-icon">➕</text>
+      <text>添加习惯</text>
+    </button>
+  </view>
+
+  <!-- 习惯统计卡片 -->
+  <view class="stats-card card" wx:if="{{showStats}}">
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-number">{{activeHabits.length}}</text>
+        <text class="stat-label">活跃习惯</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{archivedHabits.length}}</text>
+        <text class="stat-label">已归档</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{totalEnergy}}</text>
+        <text class="stat-label">总能量⚡</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 活跃习惯列表 -->
+  <view class="habits-section" wx:if="{{activeHabits.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">📈 活跃习惯 ({{activeHabits.length}})</text>
+    </view>
+    
+    <view class="habits-list">
+      <view 
+        class="habit-card card"
+        wx:for="{{activeHabits}}" 
+        wx:key="id"
+        data-id="{{item.id}}"
+      >
+        <!-- 习惯信息 -->
+        <view class="habit-header">
+          <text class="habit-name">{{item.name}}</text>
+          <view class="habit-actions">
+            <button 
+              class="action-btn edit-btn" 
+              bindtap="editHabit" 
+              data-id="{{item.id}}"
+            >
+              ✏️
+            </button>
+            <button 
+              class="action-btn archive-btn" 
+              bindtap="archiveHabit" 
+              data-id="{{item.id}}"
+            >
+              📦
+            </button>
+            <button 
+              class="action-btn delete-btn" 
+              bindtap="deleteHabit" 
+              data-id="{{item.id}}"
+            >
+              🗑️
+            </button>
+          </view>
+        </view>
+
+        <!-- 习惯详情 -->
+        <view class="habit-details">
+          <text class="habit-description" wx:if="{{item.description}}">{{item.description}}</text>
+          
+          <view class="habit-meta">
+            <view class="meta-item">
+              <text class="meta-icon">⚡</text>
+              <text class="meta-text">+{{item.energy_value}} 能量</text>
+            </view>
+            <view class="meta-item">
+              <text class="meta-icon">🎨</text>
+              <view class="color-indicator" style="background-color: {{item.color}};"></view>
+            </view>
+            <view class="meta-item" wx:if="{{item.category}}">
+              <text class="meta-icon">🏷️</text>
+              <text class="meta-text">{{item.category}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 绑定奖励信息 -->
+        <view class="binding-info" wx:if="{{item.binding_reward_id}}">
+          <text class="binding-text">🎁 绑定奖励: {{item.reward_name}}</text>
+          <view class="binding-progress">
+            <text class="progress-text">进度: {{item.progress || 0}}/{{item.reward_cost || 100}}⚡</text>
+            <view class="progress-bar">
+              <view 
+                class="progress-fill" 
+                style="width: {{(item.progress || 0) / (item.reward_cost || 100) * 100}}%"
+              ></view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 已归档习惯 -->
+  <view class="habits-section" wx:if="{{archivedHabits.length > 0}}">
+    <view class="section-header" bindtap="toggleArchivedSection">
+      <text class="section-title">📦 已归档习惯 ({{archivedHabits.length}})</text>
+      <text class="toggle-icon">{{showArchived ? '▲' : '▼'}}</text>
+    </view>
+    
+    <view class="habits-list" wx:if="{{showArchived}}">
+      <view 
+        class="habit-card card archived"
+        wx:for="{{archivedHabits}}" 
+        wx:key="id"
+      >
+        <view class="habit-header">
+          <text class="habit-name">{{item.name}}</text>
+          <view class="habit-actions">
+            <button 
+              class="action-btn restore-btn" 
+              bindtap="restoreHabit" 
+              data-id="{{item.id}}"
+            >
+              ↩️
+            </button>
+            <button 
+              class="action-btn delete-btn" 
+              bindtap="deleteHabit" 
+              data-id="{{item.id}}"
+            >
+              🗑️
+            </button>
+          </view>
+        </view>
+        <text class="archived-note">已于 {{item.archived_date}} 归档</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{activeHabits.length === 0 && archivedHabits.length === 0}}">
+    <view class="empty-icon">🎯</view>
+    <view class="empty-title">还没有习惯</view>
+    <view class="empty-description">开始添加您的第一个习惯，开启成长之旅吧！</view>
+    <button class="btn-primary" bindtap="showAddHabitForm">添加第一个习惯</button>
+  </view>
+</view>
+
+<!-- 添加/编辑习惯表单弹窗 -->
+<view class="modal-overlay" wx:if="{{showHabitForm}}" bindtap="hideHabitForm">
+  <view class="modal-content" catchtap="preventClose">
+    <view class="modal-header">
+      <text class="modal-title">{{isEditing ? '编辑习惯' : '添加习惯'}}</text>
+      <button class="close-btn" bindtap="hideHabitForm">✕</button>
+    </view>
+    
+    <form class="habit-form" bindsubmit="submitHabitForm">
+      <view class="form-group">
+        <label class="form-label">习惯名称 *</label>
+        <input 
+          class="form-input" 
+          name="name"
+          value="{{formData.name}}"
+          placeholder="例如：晨间阅读"
+          bindinput="onFormInput"
+          data-field="name"
+        />
+      </view>
+      
+      <view class="form-group">
+        <label class="form-label">描述信息</label>
+        <textarea 
+          class="form-textarea" 
+          name="description"
+          value="{{formData.description}}"
+          placeholder="简单描述这个习惯..."
+          bindinput="onFormInput"
+          data-field="description"
+        ></textarea>
+      </view>
+      
+      <view class="form-group">
+        <label class="form-label">能量值 *</label>
+        <input 
+          class="form-input" 
+          name="energy_value"
+          type="number"
+          value="{{formData.energy_value}}"
+          placeholder="1-50"
+          bindinput="onFormInput"
+          data-field="energy_value"
+        />
+      </view>
+      
+      <view class="form-group">
+        <label class="form-label">习惯颜色</label>
+        <view class="color-picker">
+          <view 
+            class="color-option {{item === formData.color ? 'selected' : ''}}"
+            wx:for="{{colorOptions}}" 
+            wx:key="*this"
+            style="background-color: {{item}}"
+            bindtap="selectColor"
+            data-color="{{item}}"
+          ></view>
+        </view>
+      </view>
+      
+      <view class="form-group">
+        <label class="form-label">分类</label>
+        <picker bindchange="onCategoryChange" value="{{categoryIndex}}" range="{{categoryOptions}}">
+          <view class="picker-input">
+            <text>{{categoryOptions[categoryIndex] || '选择分类'}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      
+      <view class="form-actions">
+        <button class="btn-secondary" bindtap="hideHabitForm">取消</button>
+        <button 
+          class="btn-primary" 
+          formType="submit"
+          disabled="{{!formData.name || !formData.energy_value}}"
+        >
+          {{isEditing ? '更新' : '创建'}}
+        </button>
+      </view>
+    </form>
+  </view>
+</view>

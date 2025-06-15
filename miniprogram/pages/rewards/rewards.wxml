@@ -1,0 +1,251 @@
+
+<!--rewards.wxml - 奖励管理页面-->
+<view class="container">
+  <!-- 页面头部 -->
+  <view class="header">
+    <text class="page-title">🎁 奖励管理</text>
+    <text class="page-subtitle">用能量兑换心仪的奖励，享受成就感！</text>
+  </view>
+
+  <!-- 能量余额卡片 -->
+  <view class="energy-card card">
+    <view class="energy-header">
+      <view class="energy-info">
+        <text class="energy-label">当前能量余额</text>
+        <text class="energy-amount">{{totalEnergy}}⚡</text>
+      </view>
+      <view class="recent-energy">
+        <text class="recent-label">今日获得</text>
+        <text class="recent-amount">+{{todayEnergy}}⚡</text>
+      </view>
+    </view>
+    <text class="energy-tip">通过完成习惯获得更多能量！</text>
+  </view>
+
+  <!-- 筛选标签栏 -->
+  <view class="filter-tabs">
+    <view 
+      class="filter-tab {{filterType === 'all' ? 'active' : ''}}"
+      bindtap="switchFilter"
+      data-type="all"
+    >
+      全部
+    </view>
+    <view 
+      class="filter-tab {{filterType === 'available' ? 'active' : ''}}"
+      bindtap="switchFilter"
+      data-type="available"
+    >
+      可兑换
+    </view>
+    <view 
+      class="filter-tab {{filterType === 'progress' ? 'active' : ''}}"
+      bindtap="switchFilter"
+      data-type="progress"
+    >
+      进行中
+    </view>
+    <view 
+      class="filter-tab {{filterType === 'redeemed' ? 'active' : ''}}"
+      bindtap="switchFilter"
+      data-type="redeemed"
+    >
+      已兑换
+    </view>
+  </view>
+
+  <!-- 奖励列表 -->
+  <view class="rewards-list">
+    <view 
+      class="reward-card card {{item.status}}"
+      wx:for="{{filteredRewards}}" 
+      wx:key="id"
+    >
+      <!-- 奖励头部 -->
+      <view class="reward-header">
+        <text class="reward-name">{{item.name}}</text>
+        <view class="reward-actions" wx:if="{{!item.is_redeemed}}">
+          <button 
+            class="action-btn edit-btn" 
+            bindtap="editReward" 
+            data-id="{{item.id}}"
+          >
+            ✏️
+          </button>
+          <button 
+            class="action-btn delete-btn" 
+            bindtap="deleteReward" 
+            data-id="{{item.id}}"
+          >
+            🗑️
+          </button>
+        </view>
+      </view>
+
+      <!-- 奖励描述 -->
+      <text class="reward-description" wx:if="{{item.description}}">{{item.description}}</text>
+
+      <!-- 进度信息 -->
+      <view class="progress-section">
+        <view class="progress-header">
+          <text class="progress-percentage">{{item.progressPercentage}}%</text>
+          <text class="energy-cost">{{item.current_energy}}/{{item.energy_cost}}⚡</text>
+        </view>
+        
+        <view class="progress-bar">
+          <view 
+            class="progress-fill {{item.status}}" 
+            style="width: {{item.progressPercentage}}%"
+          ></view>
+        </view>
+      </view>
+
+      <!-- 绑定习惯信息 -->
+      <view class="binding-section" wx:if="{{item.boundHabits && item.boundHabits.length > 0}}">
+        <text class="binding-title">🔗 绑定习惯:</text>
+        <view class="bound-habits">
+          <text 
+            class="habit-tag"
+            wx:for="{{item.boundHabits}}" 
+            wx:key="id"
+            wx:for-item="habit"
+          >
+            {{habit.name}}
+          </text>
+        </view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="reward-actions-main">
+        <button 
+          class="btn-primary redeem-btn"
+          wx:if="{{item.status === 'available'}}"
+          bindtap="redeemReward"
+          data-id="{{item.id}}"
+        >
+          🎉 立即兑换
+        </button>
+        
+        <button 
+          class="btn-secondary continue-btn"
+          wx:elif="{{item.status === 'progress'}}"
+          bindtap="showBoundHabits"
+          data-id="{{item.id}}"
+        >
+          💪 继续努力
+        </button>
+        
+        <view class="redeemed-info" wx:elif="{{item.status === 'redeemed'}}">
+          <text class="redeemed-text">✅ 已兑换</text>
+          <text class="redeemed-date">{{item.redeemed_date}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{filteredRewards.length === 0}}">
+    <view class="empty-icon">🎁</view>
+    <view class="empty-title">{{getEmptyTitle(filterType)}}</view>
+    <view class="empty-description">{{getEmptyDescription(filterType)}}</view>
+    <button class="btn-primary" bindtap="showAddRewardForm" wx:if="{{filterType === 'all'}}">
+      添加第一个奖励
+    </button>
+  </view>
+
+  <!-- 浮动添加按钮 -->
+  <view class="fab" bindtap="showAddRewardForm">
+    <text class="fab-icon">➕</text>
+  </view>
+</view>
+
+<!-- 添加/编辑奖励表单弹窗 -->
+<view class="modal-overlay" wx:if="{{showRewardForm}}" bindtap="hideRewardForm">
+  <view class="modal-content" catchtap="preventClose">
+    <view class="modal-header">
+      <text class="modal-title">{{isEditing ? '编辑奖励' : '添加奖励'}}</text>
+      <button class="close-btn" bindtap="hideRewardForm">✕</button>
+    </view>
+    
+    <form class="reward-form" bindsubmit="submitRewardForm">
+      <view class="form-group">
+        <label class="form-label">奖励名称 *</label>
+        <input 
+          class="form-input" 
+          name="name"
+          value="{{formData.name}}"
+          placeholder="例如：iPhone 15 Pro"
+          bindinput="onFormInput"
+          data-field="name"
+        />
+      </view>
+      
+      <view class="form-group">
+        <label class="form-label">奖励描述</label>
+        <textarea 
+          class="form-textarea" 
+          name="description"
+          value="{{formData.description}}"
+          placeholder="描述这个奖励的详细信息..."
+          bindinput="onFormInput"
+          data-field="description"
+        ></textarea>
+      </view>
+      
+      <view class="form-group">
+        <label class="form-label">能量成本 *</label>
+        <input 
+          class="form-input" 
+          name="energy_cost"
+          type="number"
+          value="{{formData.energy_cost}}"
+          placeholder="需要多少能量兑换"
+          bindinput="onFormInput"
+          data-field="energy_cost"
+        />
+      </view>
+      
+      <view class="form-actions">
+        <button class="btn-secondary" bindtap="hideRewardForm">取消</button>
+        <button 
+          class="btn-primary" 
+          formType="submit"
+          disabled="{{!formData.name || !formData.energy_cost}}"
+        >
+          {{isEditing ? '更新' : '创建'}}
+        </button>
+      </view>
+    </form>
+  </view>
+</view>
+
+<!-- 绑定习惯信息弹窗 -->
+<view class="modal-overlay" wx:if="{{showHabitsModal}}" bindtap="hideHabitsModal">
+  <view class="modal-content" catchtap="preventClose">
+    <view class="modal-header">
+      <text class="modal-title">绑定的习惯</text>
+      <button class="close-btn" bindtap="hideHabitsModal">✕</button>
+    </view>
+    
+    <view class="habits-info">
+      <text class="habits-tip">完成以下习惯可以为此奖励积累能量：</text>
+      <view class="habits-list-modal">
+        <view 
+          class="habit-item"
+          wx:for="{{selectedRewardHabits}}" 
+          wx:key="id"
+        >
+          <text class="habit-emoji">{{item.name.split(' ')[0]}}</text>
+          <view class="habit-details">
+            <text class="habit-name">{{item.name}}</text>
+            <text class="habit-energy">+{{item.energy_value}}⚡</text>
+          </view>
+        </view>
+      </view>
+      
+      <button class="btn-primary" bindtap="goToTodayHabits">
+        去完成习惯
+      </button>
+    </view>
+  </view>
+</view>

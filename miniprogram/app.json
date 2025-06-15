@@ -2,9 +2,9 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/auth/auth",
     "pages/habits/habits",
-    "pages/rewards/rewards"
+    "pages/rewards/rewards",
+    "pages/auth/auth"
   ],
   "window": {
     "backgroundTextStyle": "light",

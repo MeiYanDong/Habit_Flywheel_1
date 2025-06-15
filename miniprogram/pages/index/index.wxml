@@ -35,7 +35,7 @@
     <!-- 习惯列表 -->
     <view class="habits-grid" wx:else>
       <view 
-        class="habit-card card {{completedHabits.has ? 'completed' : ''}}" 
+        class="habit-card card {{completedHabits.has(item.id) ? 'completed' : ''}}" 
         wx:for="{{habits}}" 
         wx:key="id"
         data-id="{{item.id}}"
@@ -63,6 +63,20 @@
           <text wx:else>🎯 立即打卡</text>
         </button>
         
+        <!-- 绑定奖励信息 -->
+        <view class="binding-info" wx:if="{{item.binding_reward_id && item.reward_name}}">
+          <text class="binding-title">🎁 绑定奖励: {{item.reward_name}}</text>
+          <view class="binding-progress">
+            <text class="progress-text">进度: {{item.reward_progress || 0}}/{{item.reward_cost}}⚡ ({{item.reward_percentage || 0}}%)</text>
+            <view class="progress-bar">
+              <view 
+                class="progress-fill" 
+                style="width: {{item.reward_percentage || 0}}%"
+              ></view>
+            </view>
+          </view>
+        </view>
+        
         <!-- 完成动画效果 -->
         <view 
           class="completion-effect {{completedHabits.has(item.id) ? 'completed' : ''}}"
@@ -75,8 +89,9 @@
     <!-- 空状态 -->
     <view class="empty-state" wx:if="{{!isLoading && habits.length === 0}}">
       <view class="icon">🎯</view>
-      <view class="title">还没有设置习惯</view>
-      <view class="description">开始添加您的第一个习惯，开启成长之旅吧！</view>
+      <view class="title">还没有活跃习惯</view>
+      <view class="description">去习惯管理页面添加您的第一个习惯吧！</view>
+      <button class="btn-primary" bindtap="goToHabitsPage">添加习惯</button>
     </view>
   </view>
   

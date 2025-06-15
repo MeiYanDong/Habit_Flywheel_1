@@ -1,4 +1,3 @@
-
 // index.js - 今日习惯页面逻辑
 Page({
   data: {
@@ -45,49 +44,35 @@ Page({
   },
 
   loadHabits() {
-    // 模拟API调用延迟
-    setTimeout(() => {
-      // 丰富的模拟数据，保持与Web版本一致的设计
-      const habits = [
-        { 
-          id: 1, 
-          name: '🌅 晨间阅读', 
-          description: '每天阅读30分钟，充实心灵',
-          energy_value: 10,
-          color: '#8B5CF6',
-          category: '学习成长'
-        },
-        { 
-          id: 2, 
-          name: '💪 健身锻炼', 
-          description: '保持身体健康，增强体魄',
-          energy_value: 15,
-          color: '#F59E0B',
-          category: '健康生活'
-        },
-        { 
-          id: 3, 
-          name: '🧘 冥想练习', 
-          description: '静心冥想，提升专注力',
-          energy_value: 8,
-          color: '#10B981',
-          category: '心理健康'
-        },
-        { 
-          id: 4, 
-          name: '📝 写作记录', 
-          description: '记录思考，沉淀智慧',
-          energy_value: 12,
-          color: '#EF4444',
-          category: '创意表达'
-        }
-      ]
+    // 获取活跃习惯（未归档的）
+    const allHabits = wx.getStorageSync('userHabits') || []
+    const activeHabits = allHabits.filter(habit => !habit.is_archived)
+    
+    // 获取奖励信息用于显示绑定状态
+    const rewards = wx.getStorageSync('userRewards') || []
+    
+    // 增强习惯数据
+    const enhancedHabits = activeHabits.map(habit => {
+      let habitData = { ...habit }
       
-      this.setData({ 
-        habits,
-        isLoading: false
-      })
-    }, 800)
+      // 如果绑定了奖励，添加奖励信息
+      if (habit.binding_reward_id) {
+        const boundReward = rewards.find(r => r.id === habit.binding_reward_id)
+        if (boundReward) {
+          habitData.reward_name = boundReward.name
+          habitData.reward_progress = boundReward.current_energy
+          habitData.reward_cost = boundReward.energy_cost
+          habitData.reward_percentage = Math.min(100, Math.round((boundReward.current_energy / boundReward.energy_cost) * 100))
+        }
+      }
+      
+      return habitData
+    })
+    
+    this.setData({ 
+      habits: enhancedHabits,
+      isLoading: false
+    })
   },
 
   loadStats() {
@@ -162,18 +147,22 @@ Page({
   },
 
   completeHabit(habit) {
-    const { habitId } = habit
     const newTotalEnergy = this.data.totalEnergy + habit.energy_value
     const newCompletedHabits = new Set(this.data.completedHabits)
     newCompletedHabits.add(habit.id)
 
-    // 更新本地存储
+    // 更新本地存储 - 总能量
     wx.setStorageSync('totalEnergy', newTotalEnergy)
     
     // 保存今日完成记录
     const todayKey = `completed_${this.data.todayDate}`
     const completedToday = Array.from(newCompletedHabits)
     wx.setStorageSync(todayKey, completedToday)
+
+    // 更新绑定奖励的进度
+    if (habit.binding_reward_id) {
+      this.updateRewardProgress(habit.binding_reward_id, habit.energy_value)
+    }
 
     // 更新页面状态
     this.setData({
@@ -187,18 +176,11 @@ Page({
       type: 'light'
     })
 
-    // 成功提示with自定义样式
+    // 成功提示
     wx.showToast({
       title: `🎉 +${habit.energy_value}⚡`,
       icon: 'success',
-      duration: 2000,
-      success: () => {
-        // 播放音效（如果用户允许）
-        wx.createInnerAudioContext?.({
-          src: '/sounds/success.mp3',
-          autoplay: true
-        })
-      }
+      duration: 2000
     })
 
     // 检查是否完成所有习惯
@@ -219,6 +201,48 @@ Page({
     this.setData({
       streakDays: newStreakDays
     })
+
+    // 重新加载习惯数据以更新奖励进度
+    this.loadHabits()
+  },
+
+  // 更新奖励进度
+  updateRewardProgress(rewardId, energyValue) {
+    const allRewards = wx.getStorageSync('userRewards') || []
+    const updatedRewards = allRewards.map(reward => {
+      if (reward.id === rewardId && !reward.is_redeemed) {
+        const newCurrentEnergy = (reward.current_energy || 0) + energyValue
+        return {
+          ...reward,
+          current_energy: Math.min(newCurrentEnergy, reward.energy_cost), // 不超过目标能量
+          updated_at: new Date().toISOString()
+        }
+      }
+      return reward
+    })
+    
+    wx.setStorageSync('userRewards', updatedRewards)
+    
+    // 检查是否达到兑换条件
+    const updatedReward = updatedRewards.find(r => r.id === rewardId)
+    if (updatedReward && updatedReward.current_energy >= updatedReward.energy_cost && !updatedReward.is_redeemed) {
+      setTimeout(() => {
+        wx.showModal({
+          title: '🎁 奖励可兑换！',
+          content: `恭喜！"${updatedReward.name}"已经可以兑换了！`,
+          confirmText: '去兑换',
+          cancelText: '稍后',
+          confirmColor: '#F59E0B',
+          success: (res) => {
+            if (res.confirm) {
+              wx.switchTab({
+                url: '/pages/rewards/rewards'
+              })
+            }
+          }
+        })
+      }, 1500)
+    }
   },
 
   // 判断习惯是否已完成
@@ -231,6 +255,13 @@ Page({
     const completed = this.data.completedHabits.size
     const total = this.data.habits.length
     return total > 0 ? Math.round((completed / total) * 100) : 0
+  },
+
+  // 跳转到习惯管理页面
+  goToHabitsPage() {
+    wx.switchTab({
+      url: '/pages/habits/habits'
+    })
   },
 
   // 分享功能
