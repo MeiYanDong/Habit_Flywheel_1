@@ -1,0 +1,78 @@
+
+<!--auth.wxml - 用户认证页面-->
+<view class="container">
+  <!-- 页面头部 -->
+  <view class="header">
+    <view class="logo">
+      <text class="logo-text">🌟</text>
+      <text class="app-name">习惯飞轮</text>
+    </view>
+    <text class="welcome-text">欢迎来到习惯飞轮</text>
+    <text class="sub-text">开启你的成长之旅</text>
+  </view>
+
+  <!-- 登录区域 -->
+  <view class="auth-section">
+    <view class="auth-card card">
+      <!-- 微信登录 -->
+      <button 
+        class="btn-primary wechat-login"
+        open-type="getUserInfo"
+        bindgetuserinfo="handleWechatLogin"
+        disabled="{{isLoading}}"
+      >
+        <text wx:if="{{isLoading}}">登录中...</text>
+        <text wx:else>
+          <text class="wechat-icon">📱</text>
+          微信一键登录
+        </text>
+      </button>
+
+      <!-- 分割线 -->
+      <view class="divider">
+        <view class="divider-line"></view>
+        <text class="divider-text">或</text>
+        <view class="divider-line"></view>
+      </view>
+
+      <!-- 游客模式 -->
+      <button 
+        class="btn-secondary guest-login"
+        bindtap="handleGuestLogin"
+        disabled="{{isLoading}}"
+      >
+        <text class="guest-icon">👤</text>
+        游客体验
+      </button>
+    </view>
+
+    <!-- 功能介绍 -->
+    <view class="features-section">
+      <text class="features-title">为什么选择习惯飞轮？</text>
+      <view class="feature-list">
+        <view class="feature-item">
+          <text class="feature-icon">⚡</text>
+          <text class="feature-text">能量积分系统，让进步可视化</text>
+        </view>
+        <view class="feature-item">
+          <text class="feature-icon">🎯</text>
+          <text class="feature-text">科学的习惯培养方法</text>
+        </view>
+        <view class="feature-item">
+          <text class="feature-icon">🏆</text>
+          <text class="feature-text">丰富的奖励兑换系统</text>
+        </view>
+        <view class="feature-item">
+          <text class="feature-icon">📊</text>
+          <text class="feature-text">详细的进度追踪分析</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部信息 -->
+  <view class="footer">
+    <text class="footer-text">开始你的习惯飞轮之旅</text>
+    <text class="version-text">版本 1.0.0</text>
+  </view>
+</view>
