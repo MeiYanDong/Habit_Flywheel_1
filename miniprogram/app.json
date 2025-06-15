@@ -1,0 +1,45 @@
+
+{
+  "pages": [
+    "pages/index/index",
+    "pages/auth/auth",
+    "pages/habits/habits",
+    "pages/rewards/rewards"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#8B5CF6",
+    "navigationBarTitleText": "习惯飞轮",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f8fafc"
+  },
+  "tabBar": {
+    "color": "#666666",
+    "selectedColor": "#8B5CF6",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "今日",
+        "iconPath": "images/calendar.png",
+        "selectedIconPath": "images/calendar-active.png"
+      },
+      {
+        "pagePath": "pages/habits/habits",
+        "text": "习惯",
+        "iconPath": "images/habit.png",
+        "selectedIconPath": "images/habit-active.png"
+      },
+      {
+        "pagePath": "pages/rewards/rewards",
+        "text": "奖励",
+        "iconPath": "images/reward.png",
+        "selectedIconPath": "images/reward-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

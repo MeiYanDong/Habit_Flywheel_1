@@ -1,0 +1,34 @@
+
+<!--index.wxml-->
+<view class="container">
+  <view class="header">
+    <text class="main-title">🌟 习惯飞轮</text>
+    <text class="sub-title">让每一份努力都精准浇灌你的目标</text>
+  </view>
+  
+  <view class="today-section">
+    <text class="section-title">今日习惯</text>
+    <view class="habits-grid">
+      <view class="habit-card card" wx:for="{{habits}}" wx:key="id">
+        <text class="habit-name">{{item.name}}</text>
+        <view class="energy-info">
+          <text class="energy-value">+{{item.energy_value}}⚡</text>
+        </view>
+        <button class="btn-primary" bindtap="checkInHabit" data-id="{{item.id}}">
+          🎯 立即打卡
+        </button>
+      </view>
+    </view>
+  </view>
+  
+  <view class="stats-section" wx:if="{{showStats}}">
+    <view class="stat-item">
+      <text class="stat-number">{{totalEnergy}}</text>
+      <text class="stat-label">总能量</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-number">{{streakDays}}</text>
+      <text class="stat-label">连续天数</text>
+    </view>
+  </view>
+</view>
