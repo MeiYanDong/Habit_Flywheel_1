@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2, LogOut, User } from 'lucide-react';
+import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +10,7 @@ import RewardForm from '@/components/RewardForm';
 import BindingManager from '@/components/BindingManager';
 import HistoryView from '@/components/HistoryView';
 import SettingsCenter from '@/components/SettingsCenter';
+import UserAccountPopover from '@/components/UserAccountPopover';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,7 +19,7 @@ import { useRewards, Reward } from '@/hooks/useRewards';
 
 const Index = () => {
   const { showProgress, showStats, notifications } = useSettings();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { habits, loading: habitsLoading, createHabit, updateHabit, deleteHabit } = useHabits();
   const { rewards, loading: rewardsLoading, createReward, updateReward, deleteReward, redeemReward } = useRewards();
   
@@ -562,33 +562,21 @@ const Index = () => {
       {/* 左侧边栏 */}
       <div className="w-64 bg-white dark:bg-gray-800 shadow-lg border-r dark:border-gray-700">
         <div className="p-6">
-          <div className="text-center mb-8">
-            <div className="text-2xl mb-2">🌟</div>
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100 leading-tight">
-              习惯飞轮
-            </h1>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-              让每一份努力<br />都精准浇灌你的目标
-            </p>
-          </div>
-          
-          {/* 用户信息 */}
-          <div className="mb-6 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <User className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
-                {user?.email}
-              </span>
+          <div className="flex items-center justify-between mb-8">
+            <div className="text-center flex-1">
+              <div className="text-2xl mb-2">🌟</div>
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100 leading-tight">
+                习惯飞轮
+              </h1>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                让每一份努力<br />都精准浇灌你的目标
+              </p>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={signOut}
-              className="w-full mt-2 text-xs"
-            >
-              <LogOut className="h-3 w-3 mr-1" />
-              退出登录
-            </Button>
+            
+            {/* 用户账户图标 */}
+            <div className="ml-2">
+              <UserAccountPopover />
+            </div>
           </div>
           
           <nav className="space-y-2">
