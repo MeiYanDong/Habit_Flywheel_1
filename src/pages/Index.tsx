@@ -217,7 +217,7 @@ const Index = () => {
                 
                 return (
                   <Card key={habit.id} className={cn(
-                    "hover:shadow-lg transition-shadow",
+                    "hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700",
                     habit.is_archived && "opacity-60"
                   )}>
                     <CardContent className="p-4">
@@ -225,18 +225,18 @@ const Index = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
-                              <h4 className="font-medium text-gray-900">{habit.name}</h4>
+                              <h4 className="font-medium text-gray-900 dark:text-gray-100">{habit.name}</h4>
                               {habit.is_archived && (
                                 <Badge variant="secondary" className="text-xs">已归档</Badge>
                               )}
                             </div>
                             {habit.description && (
-                              <p className="text-sm text-gray-600 mb-2">{habit.description}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{habit.description}</p>
                             )}
                             <div className="flex items-center space-x-2">
                               <div className="flex items-center space-x-1">
                                 <Zap className="h-4 w-4 text-amber-500" />
-                                <span className="text-sm font-medium">+{habit.energy_value}</span>
+                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">+{habit.energy_value}</span>
                               </div>
                             </div>
                           </div>
@@ -249,6 +249,7 @@ const Index = () => {
                                 setEditingHabit(habit);
                                 setHabitFormOpen(true);
                               }}
+                              className="dark:border-gray-600"
                             >
                               <Edit className="h-3 w-3" />
                             </Button>
@@ -256,6 +257,7 @@ const Index = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => deleteHabit(habit.id)}
+                              className="dark:border-gray-600"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -263,12 +265,12 @@ const Index = () => {
                         </div>
                         
                         {boundReward && (
-                          <div className="p-2 bg-purple-50 rounded-lg">
-                            <div className="text-xs text-purple-600 mb-1">绑定奖励</div>
-                            <div className="text-sm font-medium text-purple-800">
+                          <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                            <div className="text-xs text-purple-600 dark:text-purple-400 mb-1">绑定奖励</div>
+                            <div className="text-sm font-medium text-purple-800 dark:text-purple-300">
                               {boundReward.name}
                             </div>
-                            <div className="text-xs text-purple-600">
+                            <div className="text-xs text-purple-600 dark:text-purple-400">
                               {boundReward.current_energy}/{boundReward.energy_cost}⚡
                             </div>
                           </div>
@@ -279,7 +281,7 @@ const Index = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => toggleArchiveHabit(habit.id)}
-                            className="flex-1"
+                            className="flex-1 dark:border-gray-600"
                           >
                             {habit.is_archived ? '恢复' : '归档'}
                           </Button>
