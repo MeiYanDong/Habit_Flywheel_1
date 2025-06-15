@@ -216,31 +216,56 @@
 <view class="modal-overlay" wx:if="{{showBindingModal}}" bindtap="hideBindingModal">
   <view class="modal-content binding-modal" bindtap="preventClose">
     <view class="modal-header">
-      <text class="modal-title">🔗 绑定奖励</text>
+      <text class="modal-title">🔗 管理绑定</text>
       <button class="close-btn" bindtap="hideBindingModal">×</button>
     </view>
     
     <view class="binding-content">
-      <view wx:if="{{availableRewards.length === 0}}" class="empty-rewards">
-        <text class="empty-text">暂无可绑定的奖励</text>
-        <text class="empty-hint">先去奖励页面创建一些奖励吧！</text>
+      <view class="habit-info-section">
+        <text class="habit-info-title">当前习惯：</text>
+        <text class="habit-info-name">{{selectedHabitName}}</text>
       </view>
       
-      <view wx:else class="rewards-list">
-        <text class="list-title">选择要绑定的奖励：</text>
-        <view 
-          class="reward-item" 
-          wx:for="{{availableRewards}}" 
-          wx:key="id"
-          data-id="{{item.id}}"
-          bindtap="bindToReward"
-        >
-          <view class="reward-info">
-            <text class="reward-name">🎁 {{item.name}}</text>
-            <text class="reward-cost">需要 {{item.energy_cost}}⚡</text>
-          </view>
-          <view class="reward-progress">
-            <text class="progress-text">{{item.current_energy}}/{{item.energy_cost}}</text>
+      <!-- 当前绑定状态 -->
+      <view class="current-binding" wx:if="{{currentBindingRewardId}}">
+        <text class="current-binding-title">当前绑定的奖励：</text>
+        <view class="current-reward">
+          <text class="reward-name">🎁 {{availableRewards.find(r => r.id === currentBindingRewardId).name || '已删除的奖励'}}</text>
+          <button class="btn-outline btn-sm" bindtap="unbindCurrentReward">解除绑定</button>
+        </view>
+      </view>
+      
+      <!-- 可选择的奖励列表 -->
+      <view class="rewards-section">
+        <text class="section-title">{{currentBindingRewardId ? '更换为其他奖励：' : '选择要绑定的奖励：'}}</text>
+        
+        <view wx:if="{{availableRewards.length === 0}}" class="empty-rewards">
+          <text class="empty-text">暂无可绑定的奖励</text>
+          <text class="empty-hint">所有奖励都已被绑定或兑换</text>
+          <button class="btn-primary btn-sm" bindtap="goToRewardsPage">去创建奖励</button>
+        </view>
+        
+        <view wx:else class="rewards-list">
+          <view 
+            class="reward-item" 
+            wx:for="{{availableRewards}}" 
+            wx:key="id"
+            data-id="{{item.id}}"
+            bindtap="bindToReward"
+          >
+            <view class="reward-info">
+              <text class="reward-name">🎁 {{item.name}}</text>
+              <text class="reward-cost">需要 {{item.energy_cost}}⚡</text>
+            </view>
+            <view class="reward-progress">
+              <text class="progress-text">{{item.current_energy}}/{{item.energy_cost}}</text>
+              <view class="mini-progress-bar">
+                <view 
+                  class="mini-progress-fill" 
+                  style="width: {{Math.min(100, (item.current_energy / item.energy_cost) * 100)}}%"
+                ></view>
+              </view>
+            </view>
           </view>
         </view>
       </view>

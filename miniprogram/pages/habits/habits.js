@@ -1,4 +1,3 @@
-
 // habits.js - 习惯管理页面逻辑
 Page({
   data: {
@@ -12,7 +11,9 @@ Page({
     editingId: null,
     totalEnergy: 0,
     selectedHabitId: null,
+    selectedHabitName: '',
     availableRewards: [],
+    currentBindingRewardId: null,
     
     // 筛选选项
     filterOptions: ['全部习惯', '活跃习惯', '已归档'],
@@ -171,12 +172,27 @@ Page({
   // 管理绑定
   manageBinding(e) {
     const habitId = e.currentTarget.dataset.id
+    const habit = this.data.activeHabits.find(h => h.id === habitId)
     const rewards = wx.getStorageSync('userRewards') || []
-    const availableRewards = rewards.filter(r => !r.is_redeemed)
+    
+    // 过滤出可用的奖励（未兑换且未被其他习惯绑定的）
+    const availableRewards = rewards.filter(reward => {
+      if (reward.is_redeemed) return false
+      
+      // 检查是否已被其他习惯绑定
+      const allHabits = wx.getStorageSync('userHabits') || []
+      const boundToOtherHabit = allHabits.some(h => 
+        h.id !== habitId && h.binding_reward_id === reward.id
+      )
+      
+      return !boundToOtherHabit
+    })
     
     this.setData({
       showBindingModal: true,
       selectedHabitId: habitId,
+      selectedHabitName: habit ? habit.name : '',
+      currentBindingRewardId: habit ? habit.binding_reward_id : null,
       availableRewards
     })
   },
@@ -186,6 +202,8 @@ Page({
     this.setData({
       showBindingModal: false,
       selectedHabitId: null,
+      selectedHabitName: '',
+      currentBindingRewardId: null,
       availableRewards: []
     })
   },
@@ -197,6 +215,27 @@ Page({
     
     if (!habitId) return
     
+    const allHabits = wx.getStorageSync('userHabits') || []
+    const reward = this.data.availableRewards.find(r => r.id === rewardId)
+    const habit = allHabits.find(h => h.id === habitId)
+    
+    // 确认绑定
+    wx.showModal({
+      title: '确认绑定',
+      content: `确定要将"${habit.name}"绑定到奖励"${reward.name}"吗？`,
+      confirmText: '确认绑定',
+      cancelText: '取消',
+      confirmColor: '#8B5CF6',
+      success: (res) => {
+        if (res.confirm) {
+          this.performBindToReward(habitId, rewardId)
+        }
+      }
+    })
+  },
+
+  // 执行绑定操作
+  performBindToReward(habitId, rewardId) {
     const allHabits = wx.getStorageSync('userHabits') || []
     const updatedHabits = allHabits.map(habit => {
       if (habit.id === habitId) {
@@ -212,10 +251,9 @@ Page({
     wx.setStorageSync('userHabits', updatedHabits)
     
     const reward = this.data.availableRewards.find(r => r.id === rewardId)
-    const habit = allHabits.find(h => h.id === habitId)
     
     wx.showToast({
-      title: `绑定成功！`,
+      title: '绑定成功！',
       icon: 'success',
       duration: 2000
     })
@@ -227,10 +265,11 @@ Page({
   // 解除绑定
   unbindReward(e) {
     const habitId = e.currentTarget.dataset.id
+    const habit = this.data.activeHabits.find(h => h.id === habitId)
     
     wx.showModal({
       title: '确认解绑',
-      content: '确定要解除此习惯与奖励的绑定关系吗？',
+      content: `确定要解除"${habit.name}"与"${habit.reward_name}"的绑定关系吗？`,
       confirmText: '解绑',
       cancelText: '取消',
       confirmColor: '#F59E0B',
@@ -265,6 +304,14 @@ Page({
     })
     
     this.loadHabits()
+  },
+
+  // 解绑当前绑定的奖励
+  unbindCurrentReward() {
+    if (!this.data.currentBindingRewardId || !this.data.selectedHabitId) return
+    
+    this.performUnbindReward(this.data.selectedHabitId)
+    this.hideBindingModal()
   },
 
   // 归档习惯
@@ -454,6 +501,14 @@ Page({
     
     this.hideHabitForm()
     this.loadHabits()
+  },
+
+  // 跳转到奖励页面
+  goToRewardsPage() {
+    this.hideBindingModal()
+    wx.switchTab({
+      url: '/pages/rewards/rewards'
+    })
   },
 
   // 分享功能
