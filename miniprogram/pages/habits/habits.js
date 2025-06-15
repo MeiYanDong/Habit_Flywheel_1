@@ -7,17 +7,16 @@ Page({
     showStats: true,
     showArchived: false,
     showHabitForm: false,
+    showBindingModal: false,
     isEditing: false,
     editingId: null,
     totalEnergy: 0,
+    selectedHabitId: null,
+    availableRewards: [],
     
     // 筛选选项
     filterOptions: ['全部习惯', '活跃习惯', '已归档'],
     filterIndex: 1,
-    
-    // 分类选项
-    categoryOptions: ['学习成长', '健康生活', '工作效率', '兴趣爱好', '社交关系', '其他'],
-    categoryIndex: 0,
     
     // 颜色选项
     colorOptions: [
@@ -30,8 +29,7 @@ Page({
       name: '',
       description: '',
       energy_value: 10,
-      color: '#8B5CF6',
-      category: '学习成长'
+      color: '#8B5CF6'
     }
   },
 
@@ -62,7 +60,8 @@ Page({
             ...habit,
             reward_name: reward.name,
             reward_cost: reward.energy_cost,
-            progress: reward.current_energy
+            progress: reward.current_energy,
+            progress_percentage: Math.min(100, Math.round((reward.current_energy / reward.energy_cost) * 100))
           }
         }
       }
@@ -132,10 +131,8 @@ Page({
         name: '',
         description: '',
         energy_value: 10,
-        color: '#8B5CF6',
-        category: '学习成长'
-      },
-      categoryIndex: 0
+        color: '#8B5CF6'
+      }
     })
   },
 
@@ -157,8 +154,6 @@ Page({
     const habit = this.data.activeHabits.find(h => h.id === habitId)
     
     if (habit) {
-      const categoryIndex = this.data.categoryOptions.indexOf(habit.category) || 0
-      
       this.setData({
         showHabitForm: true,
         isEditing: true,
@@ -167,12 +162,109 @@ Page({
           name: habit.name,
           description: habit.description || '',
           energy_value: habit.energy_value,
-          color: habit.color || '#8B5CF6',
-          category: habit.category || '学习成长'
-        },
-        categoryIndex
+          color: habit.color || '#8B5CF6'
+        }
       })
     }
+  },
+
+  // 管理绑定
+  manageBinding(e) {
+    const habitId = e.currentTarget.dataset.id
+    const rewards = wx.getStorageSync('userRewards') || []
+    const availableRewards = rewards.filter(r => !r.is_redeemed)
+    
+    this.setData({
+      showBindingModal: true,
+      selectedHabitId: habitId,
+      availableRewards
+    })
+  },
+
+  // 隐藏绑定模态框
+  hideBindingModal() {
+    this.setData({
+      showBindingModal: false,
+      selectedHabitId: null,
+      availableRewards: []
+    })
+  },
+
+  // 绑定奖励
+  bindToReward(e) {
+    const rewardId = e.currentTarget.dataset.id
+    const habitId = this.data.selectedHabitId
+    
+    if (!habitId) return
+    
+    const allHabits = wx.getStorageSync('userHabits') || []
+    const updatedHabits = allHabits.map(habit => {
+      if (habit.id === habitId) {
+        return {
+          ...habit,
+          binding_reward_id: rewardId,
+          updated_at: new Date().toISOString()
+        }
+      }
+      return habit
+    })
+    
+    wx.setStorageSync('userHabits', updatedHabits)
+    
+    const reward = this.data.availableRewards.find(r => r.id === rewardId)
+    const habit = allHabits.find(h => h.id === habitId)
+    
+    wx.showToast({
+      title: `绑定成功！`,
+      icon: 'success',
+      duration: 2000
+    })
+    
+    this.hideBindingModal()
+    this.loadHabits()
+  },
+
+  // 解除绑定
+  unbindReward(e) {
+    const habitId = e.currentTarget.dataset.id
+    
+    wx.showModal({
+      title: '确认解绑',
+      content: '确定要解除此习惯与奖励的绑定关系吗？',
+      confirmText: '解绑',
+      cancelText: '取消',
+      confirmColor: '#F59E0B',
+      success: (res) => {
+        if (res.confirm) {
+          this.performUnbindReward(habitId)
+        }
+      }
+    })
+  },
+
+  // 执行解绑操作
+  performUnbindReward(habitId) {
+    const allHabits = wx.getStorageSync('userHabits') || []
+    const updatedHabits = allHabits.map(habit => {
+      if (habit.id === habitId) {
+        return {
+          ...habit,
+          binding_reward_id: null,
+          updated_at: new Date().toISOString()
+        }
+      }
+      return habit
+    })
+    
+    wx.setStorageSync('userHabits', updatedHabits)
+    
+    wx.showToast({
+      title: '绑定已解除',
+      icon: 'success',
+      duration: 2000
+    })
+    
+    this.loadHabits()
   },
 
   // 归档习惯
@@ -293,17 +385,6 @@ Page({
     })
   },
 
-  // 分类选择
-  onCategoryChange(e) {
-    const categoryIndex = parseInt(e.detail.value)
-    const category = this.data.categoryOptions[categoryIndex]
-    
-    this.setData({
-      categoryIndex,
-      'formData.category': category
-    })
-  },
-
   // 提交表单
   submitHabitForm(e) {
     const { formData, isEditing, editingId } = this.data
@@ -356,6 +437,7 @@ Page({
         id: Date.now(),
         ...formData,
         is_archived: false,
+        binding_reward_id: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }

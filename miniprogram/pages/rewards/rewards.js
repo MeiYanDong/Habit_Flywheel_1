@@ -41,13 +41,13 @@ Page({
       const progressPercentage = Math.min(100, Math.round((reward.current_energy / reward.energy_cost) * 100))
       
       // 获取绑定的习惯
-      const boundHabits = habits.filter(habit => habit.binding_reward_id === reward.id)
+      const boundHabits = habits.filter(habit => habit.binding_reward_id === reward.id && !habit.is_archived)
       
       // 确定状态
       let status = 'progress'
       if (reward.is_redeemed) {
         status = 'redeemed'
-      } else if (progressPercentage >= 100) {
+      } else if (reward.current_energy >= reward.energy_cost) {
         status = 'available'
       }
       
@@ -56,7 +56,8 @@ Page({
         progressPercentage,
         boundHabits,
         status,
-        redeemed_date: reward.redeemed_at ? new Date(reward.redeemed_at).toLocaleDateString() : null
+        redeemed_date: reward.redeemed_at ? new Date(reward.redeemed_at).toLocaleDateString() : null,
+        canRedeem: reward.current_energy >= reward.energy_cost && !reward.is_redeemed
       }
     })
     
@@ -149,7 +150,7 @@ Page({
     const rewardId = e.currentTarget.dataset.id
     const reward = this.data.rewards.find(r => r.id === rewardId)
     
-    if (reward) {
+    if (reward && !reward.is_redeemed) {
       this.setData({
         showRewardForm: true,
         isEditing: true,
@@ -160,12 +161,28 @@ Page({
           energy_cost: reward.energy_cost
         }
       })
+    } else {
+      wx.showToast({
+        title: '已兑换的奖励无法编辑',
+        icon: 'none'
+      })
     }
   },
 
   // 删除奖励
   deleteReward(e) {
     const rewardId = e.currentTarget.dataset.id
+    const reward = this.data.rewards.find(r => r.id === rewardId)
+    
+    if (reward.boundHabits.length > 0) {
+      wx.showModal({
+        title: '无法删除',
+        content: '此奖励已绑定习惯，请先解除绑定关系',
+        showCancel: false,
+        confirmText: '知道了'
+      })
+      return
+    }
     
     wx.showModal({
       title: '确认删除',
@@ -186,17 +203,7 @@ Page({
     const allRewards = wx.getStorageSync('userRewards') || []
     const updatedRewards = allRewards.filter(reward => reward.id !== rewardId)
     
-    // 解除相关习惯的绑定
-    const allHabits = wx.getStorageSync('userHabits') || []
-    const updatedHabits = allHabits.map(habit => {
-      if (habit.binding_reward_id === rewardId) {
-        return { ...habit, binding_reward_id: null }
-      }
-      return habit
-    })
-    
     wx.setStorageSync('userRewards', updatedRewards)
-    wx.setStorageSync('userHabits', updatedHabits)
     
     this.loadRewards()
     
@@ -214,10 +221,10 @@ Page({
     
     if (!reward) return
     
-    if (this.data.totalEnergy < reward.energy_cost) {
+    if (!reward.canRedeem) {
       wx.showModal({
-        title: '能量不足',
-        content: `需要 ${reward.energy_cost}⚡，当前只有 ${this.data.totalEnergy}⚡`,
+        title: '无法兑换',
+        content: `还需要 ${reward.energy_cost - reward.current_energy}⚡ 才能兑换`,
         showCancel: false,
         confirmText: '继续努力',
         confirmColor: '#8B5CF6'
@@ -227,7 +234,7 @@ Page({
     
     wx.showModal({
       title: '确认兑换',
-      content: `确定要花费 ${reward.energy_cost}⚡ 兑换"${reward.name}"吗？`,
+      content: `确定要兑换"${reward.name}"吗？兑换后无法撤销。`,
       confirmText: '确认兑换',
       cancelText: '再想想',
       confirmColor: '#10B981',
@@ -258,11 +265,17 @@ Page({
       return r
     })
     
-    // 扣除能量
-    const newTotalEnergy = this.data.totalEnergy - reward.energy_cost
-    
     wx.setStorageSync('userRewards', updatedRewards)
-    wx.setStorageSync('totalEnergy', newTotalEnergy)
+    
+    // 解除相关习惯的绑定
+    const allHabits = wx.getStorageSync('userHabits') || []
+    const updatedHabits = allHabits.map(habit => {
+      if (habit.binding_reward_id === rewardId) {
+        return { ...habit, binding_reward_id: null }
+      }
+      return habit
+    })
+    wx.setStorageSync('userHabits', updatedHabits)
     
     this.loadRewards()
     this.loadEnergyData()
@@ -294,7 +307,7 @@ Page({
     } else {
       wx.showModal({
         title: '没有绑定习惯',
-        content: '此奖励还没有绑定任何习惯。请在绑定管理页面设置习惯绑定。',
+        content: '此奖励还没有绑定任何习惯。请在习惯管理页面设置绑定关系。',
         showCancel: false,
         confirmText: '知道了',
         confirmColor: '#8B5CF6'
@@ -310,11 +323,11 @@ Page({
     })
   },
 
-  // 去今日习惯页面
-  goToTodayHabits() {
+  // 去习惯管理页面
+  goToHabitsPage() {
     this.hideHabitsModal()
     wx.switchTab({
-      url: '/pages/index/index'
+      url: '/pages/habits/habits'
     })
   },
 
@@ -360,7 +373,9 @@ Page({
         if (reward.id === editingId) {
           return {
             ...reward,
-            ...formData,
+            name: formData.name,
+            description: formData.description,
+            energy_cost: formData.energy_cost,
             updated_at: new Date().toISOString()
           }
         }
@@ -398,28 +413,6 @@ Page({
     
     this.hideRewardForm()
     this.loadRewards()
-  },
-
-  // 获取空状态标题
-  getEmptyTitle(filterType) {
-    const titles = {
-      all: '还没有添加奖励',
-      available: '暂无可兑换奖励',
-      progress: '暂无进行中奖励',
-      redeemed: '还没有兑换过奖励'
-    }
-    return titles[filterType] || '暂无数据'
-  },
-
-  // 获取空状态描述
-  getEmptyDescription(filterType) {
-    const descriptions = {
-      all: '开始添加您的第一个奖励，设定目标吧！',
-      available: '继续完成习惯，积累能量来兑换奖励！',
-      progress: '所有奖励都已兑换或还未开始',
-      redeemed: '完成更多习惯，兑换心仪的奖励！'
-    }
-    return descriptions[filterType] || ''
   },
 
   // 分享功能

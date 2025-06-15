@@ -3,249 +3,283 @@
 <view class="container">
   <!-- 页面头部 -->
   <view class="header">
-    <text class="page-title">✅ 习惯管理</text>
-    <text class="page-subtitle">创建和管理您的日常习惯</text>
+    <text class="main-title">🎯 习惯管理</text>
+    <text class="sub-title">培养好习惯，绑定目标奖励</text>
   </view>
-
+  
+  <!-- 统计数据 -->
+  <view class="stats-section" wx:if="{{showStats}}">
+    <view class="stat-item">
+      <text class="stat-number">{{activeHabits.length}}</text>
+      <text class="stat-label">活跃习惯</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-number">{{totalEnergy}}</text>
+      <text class="stat-label">总能量⚡</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-number">{{activeHabits.filter(h => h.binding_reward_id).length}}</text>
+      <text class="stat-label">已绑定</text>
+    </view>
+  </view>
+  
   <!-- 操作栏 -->
   <view class="action-bar">
-    <view class="filter-section">
-      <picker bindchange="onFilterChange" value="{{filterIndex}}" range="{{filterOptions}}">
-        <view class="filter-btn">
-          <text class="filter-text">{{filterOptions[filterIndex]}}</text>
-          <text class="filter-arrow">▼</text>
-        </view>
-      </picker>
-    </view>
+    <!-- 筛选器 -->
+    <picker 
+      range="{{filterOptions}}" 
+      value="{{filterIndex}}" 
+      bindchange="onFilterChange"
+      class="filter-picker"
+    >
+      <view class="picker-display">
+        <text>{{filterOptions[filterIndex]}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
     
-    <button class="add-btn btn-primary" bindtap="showAddHabitForm">
-      <text class="add-icon">➕</text>
+    <!-- 添加按钮 -->
+    <button class="btn-add" bindtap="showAddHabitForm">
+      <text class="add-icon">+</text>
       <text>添加习惯</text>
     </button>
   </view>
-
-  <!-- 习惯统计卡片 -->
-  <view class="stats-card card" wx:if="{{showStats}}">
-    <view class="stats-grid">
-      <view class="stat-item">
-        <text class="stat-number">{{activeHabits.length}}</text>
-        <text class="stat-label">活跃习惯</text>
-      </view>
-      <view class="stat-item">
-        <text class="stat-number">{{archivedHabits.length}}</text>
-        <text class="stat-label">已归档</text>
-      </view>
-      <view class="stat-item">
-        <text class="stat-number">{{totalEnergy}}</text>
-        <text class="stat-label">总能量⚡</text>
-      </view>
-    </view>
-  </view>
-
+  
   <!-- 活跃习惯列表 -->
   <view class="habits-section" wx:if="{{activeHabits.length > 0}}">
-    <view class="section-header">
-      <text class="section-title">📈 活跃习惯 ({{activeHabits.length}})</text>
-    </view>
+    <text class="section-title">📋 活跃习惯</text>
     
-    <view class="habits-list">
+    <view class="habits-grid">
       <view 
-        class="habit-card card"
+        class="habit-card card" 
         wx:for="{{activeHabits}}" 
         wx:key="id"
-        data-id="{{item.id}}"
+        style="border-left: 4px solid {{item.color || '#8B5CF6'}}"
       >
-        <!-- 习惯信息 -->
+        <!-- 习惯基本信息 -->
         <view class="habit-header">
           <text class="habit-name">{{item.name}}</text>
-          <view class="habit-actions">
-            <button 
-              class="action-btn edit-btn" 
-              bindtap="editHabit" 
-              data-id="{{item.id}}"
-            >
-              ✏️
-            </button>
-            <button 
-              class="action-btn archive-btn" 
-              bindtap="archiveHabit" 
-              data-id="{{item.id}}"
-            >
-              📦
-            </button>
-            <button 
-              class="action-btn delete-btn" 
-              bindtap="deleteHabit" 
-              data-id="{{item.id}}"
-            >
-              🗑️
-            </button>
+          <text class="energy-badge">+{{item.energy_value}}⚡</text>
+        </view>
+        
+        <text class="habit-description" wx:if="{{item.description}}">{{item.description}}</text>
+        
+        <!-- 绑定状态 -->
+        <view class="binding-status">
+          <view wx:if="{{item.binding_reward_id}}" class="bound-reward">
+            <view class="reward-info">
+              <text class="reward-icon">🎁</text>
+              <text class="reward-name">{{item.reward_name}}</text>
+            </view>
+            <view class="progress-section">
+              <text class="progress-text">{{item.progress || 0}}/{{item.reward_cost}}⚡ ({{item.progress_percentage || 0}}%)</text>
+              <view class="progress-bar">
+                <view 
+                  class="progress-fill" 
+                  style="width: {{item.progress_percentage || 0}}%"
+                ></view>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="unbound-status">
+            <text class="unbound-text">🔗 未绑定奖励</text>
           </view>
         </view>
-
-        <!-- 习惯详情 -->
-        <view class="habit-details">
-          <text class="habit-description" wx:if="{{item.description}}">{{item.description}}</text>
+        
+        <!-- 操作按钮 -->
+        <view class="habit-actions">
+          <button 
+            class="btn-secondary btn-sm" 
+            bindtap="editHabit" 
+            data-id="{{item.id}}"
+          >
+            编辑
+          </button>
           
-          <view class="habit-meta">
-            <view class="meta-item">
-              <text class="meta-icon">⚡</text>
-              <text class="meta-text">+{{item.energy_value}} 能量</text>
-            </view>
-            <view class="meta-item">
-              <text class="meta-icon">🎨</text>
-              <view class="color-indicator" style="background-color: {{item.color}};"></view>
-            </view>
-            <view class="meta-item" wx:if="{{item.category}}">
-              <text class="meta-icon">🏷️</text>
-              <text class="meta-text">{{item.category}}</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 绑定奖励信息 -->
-        <view class="binding-info" wx:if="{{item.binding_reward_id}}">
-          <text class="binding-text">🎁 绑定奖励: {{item.reward_name}}</text>
-          <view class="binding-progress">
-            <text class="progress-text">进度: {{item.progress || 0}}/{{item.reward_cost || 100}}⚡</text>
-            <view class="progress-bar">
-              <view 
-                class="progress-fill" 
-                style="width: {{(item.progress || 0) / (item.reward_cost || 100) * 100}}%"
-              ></view>
-            </view>
-          </view>
+          <button 
+            class="btn-binding btn-sm" 
+            bindtap="manageBinding" 
+            data-id="{{item.id}}"
+          >
+            {{item.binding_reward_id ? '管理绑定' : '绑定奖励'}}
+          </button>
+          
+          <button 
+            wx:if="{{item.binding_reward_id}}"
+            class="btn-unbind btn-sm" 
+            bindtap="unbindReward" 
+            data-id="{{item.id}}"
+          >
+            解绑
+          </button>
+          
+          <button 
+            class="btn-archive btn-sm" 
+            bindtap="archiveHabit" 
+            data-id="{{item.id}}"
+          >
+            归档
+          </button>
+          
+          <button 
+            class="btn-danger btn-sm" 
+            bindtap="deleteHabit" 
+            data-id="{{item.id}}"
+          >
+            删除
+          </button>
         </view>
       </view>
     </view>
   </view>
-
-  <!-- 已归档习惯 -->
-  <view class="habits-section" wx:if="{{archivedHabits.length > 0}}">
-    <view class="section-header" bindtap="toggleArchivedSection">
+  
+  <!-- 归档习惯区域 -->
+  <view class="archived-section" wx:if="{{showArchived && archivedHabits.length > 0}}">
+    <view class="archived-header" bindtap="toggleArchivedSection">
       <text class="section-title">📦 已归档习惯 ({{archivedHabits.length}})</text>
-      <text class="toggle-icon">{{showArchived ? '▲' : '▼'}}</text>
+      <text class="toggle-icon">{{showArchived ? '▼' : '▶'}}</text>
     </view>
     
-    <view class="habits-list" wx:if="{{showArchived}}">
+    <view class="habits-grid archived-grid">
       <view 
-        class="habit-card card archived"
+        class="habit-card card archived" 
         wx:for="{{archivedHabits}}" 
         wx:key="id"
       >
         <view class="habit-header">
           <text class="habit-name">{{item.name}}</text>
-          <view class="habit-actions">
-            <button 
-              class="action-btn restore-btn" 
-              bindtap="restoreHabit" 
-              data-id="{{item.id}}"
-            >
-              ↩️
-            </button>
-            <button 
-              class="action-btn delete-btn" 
-              bindtap="deleteHabit" 
-              data-id="{{item.id}}"
-            >
-              🗑️
-            </button>
-          </view>
+          <text class="archived-date">{{item.archived_date}}</text>
         </view>
-        <text class="archived-note">已于 {{item.archived_date}} 归档</text>
+        
+        <view class="habit-actions">
+          <button 
+            class="btn-restore btn-sm" 
+            bindtap="restoreHabit" 
+            data-id="{{item.id}}"
+          >
+            恢复
+          </button>
+          
+          <button 
+            class="btn-danger btn-sm" 
+            bindtap="deleteHabit" 
+            data-id="{{item.id}}"
+          >
+            删除
+          </button>
+        </view>
       </view>
     </view>
   </view>
-
+  
   <!-- 空状态 -->
-  <view class="empty-state" wx:if="{{activeHabits.length === 0 && archivedHabits.length === 0}}">
-    <view class="empty-icon">🎯</view>
-    <view class="empty-title">还没有习惯</view>
-    <view class="empty-description">开始添加您的第一个习惯，开启成长之旅吧！</view>
-    <button class="btn-primary" bindtap="showAddHabitForm">添加第一个习惯</button>
+  <view class="empty-state" wx:if="{{activeHabits.length === 0 && filterIndex === 1}}">
+    <view class="icon">🎯</view>
+    <view class="title">还没有活跃习惯</view>
+    <view class="description">创建您的第一个习惯，开始习惯养成之旅！</view>
+    <button class="btn-primary" bindtap="showAddHabitForm">添加习惯</button>
   </view>
 </view>
 
-<!-- 添加/编辑习惯表单弹窗 -->
+<!-- 习惯表单模态框 -->
 <view class="modal-overlay" wx:if="{{showHabitForm}}" bindtap="hideHabitForm">
-  <view class="modal-content" catchtap="preventClose">
+  <view class="modal-content habit-form" bindtap="preventClose">
     <view class="modal-header">
-      <text class="modal-title">{{isEditing ? '编辑习惯' : '添加习惯'}}</text>
-      <button class="close-btn" bindtap="hideHabitForm">✕</button>
+      <text class="modal-title">{{isEditing ? '编辑习惯' : '添加新习惯'}}</text>
+      <button class="btn-close" bindtap="hideHabitForm">×</button>
     </view>
     
-    <form class="habit-form" bindsubmit="submitHabitForm">
+    <form bindsubmit="submitHabitForm" class="form">
       <view class="form-group">
         <label class="form-label">习惯名称 *</label>
         <input 
           class="form-input" 
-          name="name"
+          placeholder="例如：每日阅读30分钟"
           value="{{formData.name}}"
-          placeholder="例如：晨间阅读"
-          bindinput="onFormInput"
           data-field="name"
+          bindinput="onFormInput"
+          maxlength="50"
         />
       </view>
       
       <view class="form-group">
-        <label class="form-label">描述信息</label>
+        <label class="form-label">习惯描述</label>
         <textarea 
           class="form-textarea" 
-          name="description"
+          placeholder="详细描述这个习惯..."
           value="{{formData.description}}"
-          placeholder="简单描述这个习惯..."
-          bindinput="onFormInput"
           data-field="description"
+          bindinput="onFormInput"
+          maxlength="200"
         ></textarea>
       </view>
       
       <view class="form-group">
-        <label class="form-label">能量值 *</label>
+        <label class="form-label">能量值 * (1-50)</label>
         <input 
           class="form-input" 
-          name="energy_value"
           type="number"
+          placeholder="10"
           value="{{formData.energy_value}}"
-          placeholder="1-50"
-          bindinput="onFormInput"
           data-field="energy_value"
+          bindinput="onFormInput"
         />
       </view>
       
       <view class="form-group">
         <label class="form-label">习惯颜色</label>
-        <view class="color-picker">
+        <view class="color-options">
           <view 
-            class="color-option {{item === formData.color ? 'selected' : ''}}"
+            class="color-option {{item === formData.color ? 'selected' : ''}}" 
             wx:for="{{colorOptions}}" 
-            wx:key="*this"
+            wx:key="index"
             style="background-color: {{item}}"
-            bindtap="selectColor"
             data-color="{{item}}"
+            bindtap="selectColor"
           ></view>
         </view>
       </view>
       
-      <view class="form-group">
-        <label class="form-label">分类</label>
-        <picker bindchange="onCategoryChange" value="{{categoryIndex}}" range="{{categoryOptions}}">
-          <view class="picker-input">
-            <text>{{categoryOptions[categoryIndex] || '选择分类'}}</text>
-            <text class="picker-arrow">▼</text>
-          </view>
-        </picker>
-      </view>
-      
       <view class="form-actions">
         <button class="btn-secondary" bindtap="hideHabitForm">取消</button>
-        <button 
-          class="btn-primary" 
-          formType="submit"
-          disabled="{{!formData.name || !formData.energy_value}}"
-        >
-          {{isEditing ? '更新' : '创建'}}
-        </button>
+        <button class="btn-primary" form-type="submit">{{isEditing ? '更新' : '创建'}}</button>
       </view>
     </form>
+  </view>
+</view>
+
+<!-- 绑定管理模态框 -->
+<view class="modal-overlay" wx:if="{{showBindingModal}}" bindtap="hideBindingModal">
+  <view class="modal-content binding-modal" bindtap="preventClose">
+    <view class="modal-header">
+      <text class="modal-title">🔗 绑定奖励</text>
+      <button class="btn-close" bindtap="hideBindingModal">×</button>
+    </view>
+    
+    <view class="binding-content">
+      <view wx:if="{{availableRewards.length === 0}}" class="empty-rewards">
+        <text class="empty-text">暂无可绑定的奖励</text>
+        <text class="empty-hint">先去奖励页面创建一些奖励吧！</text>
+      </view>
+      
+      <view wx:else class="rewards-list">
+        <text class="list-title">选择要绑定的奖励：</text>
+        <view 
+          class="reward-item" 
+          wx:for="{{availableRewards}}" 
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="bindToReward"
+        >
+          <view class="reward-info">
+            <text class="reward-name">🎁 {{item.name}}</text>
+            <text class="reward-cost">需要 {{item.energy_cost}}⚡</text>
+          </view>
+          <view class="reward-progress">
+            <text class="progress-text">{{item.current_energy}}/{{item.energy_cost}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </view>
