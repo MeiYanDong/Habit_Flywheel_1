@@ -21,21 +21,15 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "今日",
-        "iconPath": "images/calendar.png",
-        "selectedIconPath": "images/calendar-active.png"
+        "text": "今日"
       },
       {
         "pagePath": "pages/habits/habits",
-        "text": "习惯",
-        "iconPath": "images/habit.png",
-        "selectedIconPath": "images/habit-active.png"
+        "text": "习惯"
       },
       {
         "pagePath": "pages/rewards/rewards",
-        "text": "奖励",
-        "iconPath": "images/reward.png",
-        "selectedIconPath": "images/reward-active.png"
+        "text": "奖励"
       }
     ]
   },
