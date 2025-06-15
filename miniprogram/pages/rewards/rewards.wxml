@@ -63,27 +63,15 @@
     >
       <!-- 奖励头部 -->
       <view class="reward-header">
-        <text class="reward-name">{{item.name}}</text>
+        <view class="reward-info">
+          <text class="reward-name">{{item.name}}</text>
+          <text class="reward-description" wx:if="{{item.description}}">{{item.description}}</text>
+        </view>
         <view class="reward-actions" wx:if="{{!item.is_redeemed}}">
-          <button 
-            class="action-btn edit-btn" 
-            bindtap="editReward" 
-            data-id="{{item.id}}"
-          >
-            ✏️
-          </button>
-          <button 
-            class="action-btn delete-btn" 
-            bindtap="deleteReward" 
-            data-id="{{item.id}}"
-          >
-            🗑️
-          </button>
+          <button class="action-btn edit-btn" bindtap="editReward" data-id="{{item.id}}">✏️</button>
+          <button class="action-btn delete-btn" bindtap="deleteReward" data-id="{{item.id}}">🗑️</button>
         </view>
       </view>
-
-      <!-- 奖励描述 -->
-      <text class="reward-description" wx:if="{{item.description}}">{{item.description}}</text>
 
       <!-- 进度信息 -->
       <view class="progress-section">
@@ -155,7 +143,7 @@
 
   <!-- 浮动添加按钮 -->
   <view class="fab" bindtap="showAddRewardForm">
-    <text class="fab-icon">➕</text>
+    <text class="fab-icon">+</text>
   </view>
 </view>
 
@@ -164,7 +152,7 @@
   <view class="modal-content" catchtap="preventClose">
     <view class="modal-header">
       <text class="modal-title">{{isEditing ? '编辑奖励' : '添加奖励'}}</text>
-      <button class="close-btn" bindtap="hideRewardForm">✕</button>
+      <button class="close-btn" bindtap="hideRewardForm">×</button>
     </view>
     
     <form class="reward-form" bindsubmit="submitRewardForm">
@@ -224,7 +212,7 @@
   <view class="modal-content" catchtap="preventClose">
     <view class="modal-header">
       <text class="modal-title">绑定的习惯</text>
-      <button class="close-btn" bindtap="hideHabitsModal">✕</button>
+      <button class="close-btn" bindtap="hideHabitsModal">×</button>
     </view>
     
     <view class="habits-info">
