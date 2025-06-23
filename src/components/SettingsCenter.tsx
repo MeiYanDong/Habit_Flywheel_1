@@ -241,7 +241,7 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">开发者</span>
-            <span className="text-sm dark:text-gray-300">习惯飞轮团队</span>
+            <span className="text-sm dark:text-gray-300">梅炎栋</span>
           </div>
         </CardContent>
       </Card>
