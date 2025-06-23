@@ -199,20 +199,20 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
             <div className="w-full overflow-x-auto">
               <div className="h-[160px] sm:h-[200px] md:h-[300px] min-w-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
-                    <XAxis 
-                      dataKey="day" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 10, fill: '#6B7280' }}
-                      className="text-xs dark:fill-gray-400"
-                    />
-                    <YAxis 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 10, fill: '#6B7280' }}
-                      className="text-xs dark:fill-gray-400"
-                    />
+                <LineChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
+                  <XAxis 
+                    dataKey="day" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: '#6B7280' }}
+                    className="text-xs dark:fill-gray-400"
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: '#6B7280' }}
+                    className="text-xs dark:fill-gray-400"
+                  />
                     <Tooltip 
                       contentStyle={{
                         backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -220,25 +220,25 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
                         borderRadius: '8px',
                         fontSize: '12px'
                       }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="completions" 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="completions" 
                       stroke="#8b5cf6"
-                      strokeWidth={2}
+                    strokeWidth={2}
                       dot={{ fill: '#8b5cf6', strokeWidth: 1, r: 3 }}
                       activeDot={{ r: 4, stroke: '#8b5cf6', strokeWidth: 2 }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="energy" 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="energy" 
                       stroke="#f59e0b"
-                      strokeWidth={2}
+                    strokeWidth={2}
                       dot={{ fill: '#f59e0b', strokeWidth: 1, r: 3 }}
                       activeDot={{ r: 4, stroke: '#f59e0b', strokeWidth: 2 }}
-                      strokeDasharray="3 3"
-                    />
-                  </LineChart>
+                    strokeDasharray="3 3"
+                  />
+                </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>

@@ -233,11 +233,11 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
         <CardContent className="space-y-3">
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">版本</span>
-            <Badge variant="secondary">v1.0.0</Badge>
+                            <Badge variant="secondary">v2.0.0</Badge>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">最后更新</span>
-            <span className="text-sm dark:text-gray-300">2024-06-14</span>
+                            <span className="text-sm dark:text-gray-300">2025-01-15</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">开发者</span>
