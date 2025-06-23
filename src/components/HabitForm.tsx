@@ -282,7 +282,7 @@ const HabitForm: React.FC<HabitFormProps> = ({
               <Button type="button" variant="outline" onClick={handleClose}>
                 取消
               </Button>
-              <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
+              <Button type="submit" className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600">
                 {isEditing ? '保存修改' : '创建习惯'}
               </Button>
             </DialogFooter>

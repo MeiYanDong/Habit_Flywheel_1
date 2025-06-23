@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { EnhancedSelect } from '@/components/ui/enhanced-select';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { BarChart3, Calendar, TrendingUp, Zap, CheckCircle } from 'lucide-react';
+import { BarChart3, Calendar, TrendingUp, Zap, CheckCircle, Clock, CalendarDays, Archive } from 'lucide-react';
 
 interface HistoryViewProps {
   habits: Array<{
@@ -123,31 +123,55 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
         </div>
 
         {/* 筛选器 - 移动端优化 */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 md:gap-4">
-          <Select value={timeRange} onValueChange={(value: 'week' | 'month' | 'all') => setTimeRange(value)}>
-            <SelectTrigger className="w-full sm:w-28 md:w-32 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">最近一周</SelectItem>
-              <SelectItem value="month">最近一月</SelectItem>
-              <SelectItem value="all">全部时间</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <EnhancedSelect
+            value={timeRange}
+            onValueChange={(value: 'week' | 'month' | 'all') => setTimeRange(value)}
+            options={[
+              {
+                value: 'week',
+                label: '最近一周',
+                icon: <Clock className="h-4 w-4" />,
+                description: '查看最近7天的数据'
+              },
+              {
+                value: 'month',
+                label: '最近一月',
+                icon: <CalendarDays className="h-4 w-4" />,
+                description: '查看最近30天的数据'
+              },
+              {
+                value: 'all',
+                label: '全部时间',
+                icon: <Archive className="h-4 w-4" />,
+                description: '查看所有历史数据'
+              }
+            ]}
+            width="w-full sm:w-44"
+            placeholder="选择时间范围"
+          />
 
-          <Select value={selectedHabit} onValueChange={setSelectedHabit}>
-            <SelectTrigger className="w-full sm:w-32 md:w-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部习惯</SelectItem>
-              {habits.map(habit => (
-                <SelectItem key={habit.id} value={habit.id}>
-                  {habit.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <EnhancedSelect
+            value={selectedHabit}
+            onValueChange={setSelectedHabit}
+            options={[
+              {
+                value: 'all',
+                label: '全部习惯',
+                icon: <CheckCircle className="h-4 w-4" />,
+                count: habits.length,
+                description: '显示所有习惯的数据'
+              },
+              ...habits.map(habit => ({
+                value: habit.id,
+                label: habit.name,
+                icon: <Zap className="h-4 w-4" />,
+                description: `查看 ${habit.name} 的历史数据`
+              }))
+            ]}
+            width="w-full sm:w-48"
+            placeholder="选择习惯"
+          />
         </div>
 
         {/* 统计卡片 - 移动端2x2布局 */}

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2 } from 'lucide-react';
+import { Calendar, CheckCircle, Gift, Link2, BarChart3, Settings, Plus, Target, Zap, Edit, Trash2, Archive, Activity, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { EnhancedSelect } from '@/components/ui/enhanced-select';
 import { cn } from '@/lib/utils';
 import HabitForm from '@/components/HabitForm';
 import RewardForm from '@/components/RewardForm';
@@ -130,7 +131,7 @@ const Index = () => {
                     </div>
                     
                     <Button 
-                      className="w-full bg-purple-600 hover:bg-purple-700"
+                      className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
                     >
                       🎯 立即打卡
                     </Button>
@@ -167,26 +168,52 @@ const Index = () => {
 
     const filteredHabits = getFilteredHabits();
 
+    // 准备筛选选项数据
+    const activeCount = habits.filter(h => !h.is_archived).length;
+    const archivedCount = habits.filter(h => h.is_archived).length;
+    const totalCount = habits.length;
+
+    const habitFilterOptions = [
+      {
+        value: 'active',
+        label: '活跃习惯',
+        icon: <Activity className="h-4 w-4" />,
+        count: activeCount,
+        description: '正在进行的习惯'
+      },
+      {
+        value: 'archived',
+        label: '已归档',
+        icon: <Archive className="h-4 w-4" />,
+        count: archivedCount,
+        description: '已归档的习惯'
+      },
+      {
+        value: 'all',
+        label: '全部习惯',
+        icon: <CheckCircle className="h-4 w-4" />,
+        count: totalCount,
+        description: '所有习惯'
+      }
+    ];
+
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">习惯管理</h2>
             <p className="text-gray-600 dark:text-gray-400">管理您的习惯，让每一个小目标都成为成长的动力</p>
           </div>
-          <div className="flex items-center space-x-4">
-            <Select value={habitFilter} onValueChange={setHabitFilter}>
-              <SelectTrigger className="w-32 dark:border-gray-600">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">活跃习惯</SelectItem>
-                <SelectItem value="archived">已归档</SelectItem>
-                <SelectItem value="all">全部习惯</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <EnhancedSelect
+              value={habitFilter}
+              onValueChange={setHabitFilter}
+              options={habitFilterOptions}
+              width="w-48"
+              placeholder="选择筛选条件"
+            />
             <Button 
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 transition-all duration-200 hover:shadow-lg"
               onClick={() => setHabitFormOpen(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -338,26 +365,52 @@ const Index = () => {
 
     const filteredRewards = getFilteredRewards();
 
+    // 准备筛选选项数据
+    const redeemableCount = rewards.filter(r => !r.is_redeemed).length;
+    const redeemedCount = rewards.filter(r => r.is_redeemed).length;
+    const totalRewardsCount = rewards.length;
+
+    const rewardFilterOptions = [
+      {
+        value: 'redeemable',
+        label: '可兑换',
+        icon: <Star className="h-4 w-4" />,
+        count: redeemableCount,
+        description: '可以兑换的奖励'
+      },
+      {
+        value: 'redeemed',
+        label: '已兑换',
+        icon: <CheckCircle className="h-4 w-4" />,
+        count: redeemedCount,
+        description: '已经兑换的奖励'
+      },
+      {
+        value: 'all',
+        label: '全部奖励',
+        icon: <Gift className="h-4 w-4" />,
+        count: totalRewardsCount,
+        description: '所有奖励'
+      }
+    ];
+
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">奖励管理</h2>
             <p className="text-gray-600 dark:text-gray-400">设定目标，用能量点亮梦想</p>
           </div>
-          <div className="flex items-center space-x-4">
-            <Select value={rewardFilter} onValueChange={setRewardFilter}>
-              <SelectTrigger className="w-32 dark:border-gray-600">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="redeemable">可兑换</SelectItem>
-                <SelectItem value="redeemed">已兑换</SelectItem>
-                <SelectItem value="all">全部奖励</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <EnhancedSelect
+              value={rewardFilter}
+              onValueChange={setRewardFilter}
+              options={rewardFilterOptions}
+              width="w-48"
+              placeholder="选择筛选条件"
+            />
             <Button 
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 transition-all duration-200 hover:shadow-lg"
               onClick={() => setRewardFormOpen(true)}
             >
               <Plus className="h-4 w-4 mr-2" />

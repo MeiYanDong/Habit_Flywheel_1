@@ -197,7 +197,7 @@ const Auth = () => {
                     />
                   </div>
                 </div>
-                <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={loading}>
+                <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   登录
                 </Button>
@@ -252,7 +252,7 @@ const Auth = () => {
                     />
                   </div>
                 </div>
-                <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={loading}>
+                <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   注册
                 </Button>

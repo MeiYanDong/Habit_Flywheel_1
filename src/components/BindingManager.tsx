@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Link2, Unlink, Zap, Target, CheckCircle, Gift } from 'lucide-react';
+import { EnhancedSelect } from '@/components/ui/enhanced-select';
+import { Link2, Unlink, Zap, Target, CheckCircle, Gift, Activity, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface BindingManagerProps {
@@ -106,52 +107,44 @@ const BindingManager: React.FC<BindingManagerProps> = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 选择习惯
               </label>
-              <Select value={selectedHabit} onValueChange={setSelectedHabit}>
-                <SelectTrigger className="dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                  <SelectValue placeholder="选择要绑定的习惯" />
-                </SelectTrigger>
-                <SelectContent>
-                  {unboundHabits.map(habit => (
-                    <SelectItem key={habit.id} value={habit.id}>
-                      <div className="flex items-center space-x-2">
-                        <span>{habit.name}</span>
-                        <Badge variant="secondary" className="text-xs">
-                          +{habit.energyValue}⚡
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <EnhancedSelect
+                value={selectedHabit}
+                onValueChange={setSelectedHabit}
+                options={unboundHabits.map(habit => ({
+                  value: habit.id,
+                  label: habit.name,
+                  icon: <Activity className="h-4 w-4" />,
+                  count: habit.energyValue,
+                  description: `每次完成获得 ${habit.energyValue} 能量`
+                }))}
+                width="w-full"
+                placeholder="选择要绑定的习惯"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 选择奖励
               </label>
-              <Select value={selectedReward} onValueChange={setSelectedReward}>
-                <SelectTrigger className="dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                  <SelectValue placeholder="选择要绑定的奖励" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableRewards.map(reward => (
-                    <SelectItem key={reward.id} value={reward.id}>
-                      <div className="flex items-center space-x-2">
-                        <span>{reward.name}</span>
-                        <Badge variant="secondary" className="text-xs">
-                          {reward.energyCost}⚡
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <EnhancedSelect
+                value={selectedReward}
+                onValueChange={setSelectedReward}
+                options={availableRewards.map(reward => ({
+                  value: reward.id,
+                  label: reward.name,
+                  icon: <Star className="h-4 w-4" />,
+                  count: reward.energyCost,
+                  description: `需要消耗 ${reward.energyCost} 能量兑换`
+                }))}
+                width="w-full"
+                placeholder="选择要绑定的奖励"
+              />
             </div>
           </div>
 
           <Button 
             onClick={createBinding}
-            className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700"
+            className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
             disabled={!selectedHabit || !selectedReward}
           >
             创建绑定
