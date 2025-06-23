@@ -237,7 +237,7 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">最后更新</span>
-                            <span className="text-sm dark:text-gray-300">2025-6-23</span>
+                            <span className="text-sm dark:text-gray-300">2024-06-23</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">开发者</span>
