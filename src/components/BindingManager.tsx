@@ -87,7 +87,7 @@ const BindingManager: React.FC<BindingManagerProps> = ({
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-6">
       <div className="text-center">
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">绑定管理</h2>
         <p className="text-gray-600 dark:text-gray-400">将习惯绑定到奖励，让每次努力都有明确目标</p>

@@ -5,29 +5,50 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { EnhancedSelect } from '@/components/ui/enhanced-select';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { BarChart3, Calendar, TrendingUp, Zap, CheckCircle, Clock, CalendarDays, Archive } from 'lucide-react';
+import { useHabits } from '@/hooks/useHabits';
+import { useHabitCompletions } from '@/hooks/useHabitCompletions';
 
-interface HistoryViewProps {
-  habits: Array<{
-    id: string;
-    name: string;
-    energyValue: number;
-    isArchived: boolean;
-  }>;
-  completions: Array<{
-    id: string;
-    habitId: string;
-    date: string;
-    energy: number;
-    timestamp: string;
-  }>;
-}
-
-const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
+const HistoryView: React.FC = () => {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'all'>('week');
   const [selectedHabit, setSelectedHabit] = useState<string>('all');
+  
+  // 直接使用hooks获取数据
+  const { habits, loading: habitsLoading } = useHabits();
+  const { completions, loading: completionsLoading } = useHabitCompletions();
+
+  // 转换数据格式以匹配组件需求
+  const transformedHabits = useMemo(() => {
+    return habits.map(habit => ({
+      id: habit.id,
+      name: habit.name,
+      energyValue: habit.energy_value,
+      isArchived: habit.is_archived
+    }));
+  }, [habits]);
+
+  const transformedCompletions = useMemo(() => {
+    return completions.map(completion => ({
+      id: completion.id,
+      habitId: completion.habit_id,
+      date: completion.completed_at.split('T')[0], // 转换为YYYY-MM-DD格式
+      energy: completion.energy_gained,
+      timestamp: completion.completed_at
+    }));
+  }, [completions]);
 
   // 计算统计数据
   const stats = useMemo(() => {
+    if (completionsLoading || habitsLoading) {
+      return {
+        totalCompletions: 0,
+        totalEnergy: 0,
+        uniqueDays: 0,
+        dailyStats: {},
+        habitStats: {},
+        filteredCompletions: []
+      };
+    }
+
     const now = new Date();
     let startDate: Date;
 
@@ -43,7 +64,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
         break;
     }
 
-    const filteredCompletions = completions.filter(c => {
+    const filteredCompletions = transformedCompletions.filter(c => {
       const completionDate = new Date(c.date);
       const habitFilter = selectedHabit === 'all' || c.habitId === selectedHabit;
       return completionDate >= startDate && habitFilter;
@@ -83,7 +104,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
       habitStats,
       filteredCompletions
     };
-  }, [completions, timeRange, selectedHabit]);
+  }, [transformedCompletions, timeRange, selectedHabit, completionsLoading, habitsLoading]);
 
   // 获取最近7天的数据用于折线图显示
   const chartData = useMemo(() => {
@@ -103,7 +124,32 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
     return days;
   }, [stats.dailyStats]);
 
-
+  // 如果数据正在加载，显示加载状态
+  if (habitsLoading || completionsLoading) {
+    return (
+      <div className="w-full max-w-none overflow-x-hidden">
+        <div className="space-y-6 pt-6 p-2 sm:p-4 lg:px-0">
+          <div className="text-center">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">历史记录</h2>
+            <p className="text-gray-600 dark:text-gray-400">加载中...</p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 md:gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <Card key={i} className="min-w-0 dark:bg-gray-800 dark:border-gray-700">
+                <CardContent className="p-2 sm:p-3 md:p-4 text-center">
+                  <div className="animate-pulse">
+                    <div className="h-6 w-6 bg-gray-300 dark:bg-gray-600 rounded mx-auto mb-2"></div>
+                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded mb-1"></div>
+                    <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getTimeRangeText = () => {
     switch (timeRange) {
@@ -116,10 +162,10 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
   return (
     <div className="w-full max-w-none overflow-x-hidden">
       {/* 移动端全宽容器 */}
-      <div className="space-y-3 sm:space-y-4 md:space-y-6 p-2 sm:p-4 lg:px-0">
+      <div className="space-y-6 pt-6 p-2 sm:p-4 lg:px-0">
         <div className="text-center">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">历史记录</h2>
-          <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400">回顾成长轨迹，数据见证努力</p>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">历史记录</h2>
+          <p className="text-gray-600 dark:text-gray-400">回顾成长轨迹，数据见证努力</p>
         </div>
 
         {/* 筛选器 - 移动端优化 */}
@@ -159,10 +205,10 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
                 value: 'all',
                 label: '全部习惯',
                 icon: <CheckCircle className="h-4 w-4" />,
-                count: habits.length,
+                count: transformedHabits.length,
                 description: '显示所有习惯的数据'
               },
-              ...habits.map(habit => ({
+              ...transformedHabits.map(habit => ({
                 value: habit.id,
                 label: habit.name,
                 icon: <Zap className="h-4 w-4" />,
@@ -174,146 +220,161 @@ const HistoryView: React.FC<HistoryViewProps> = ({ habits, completions }) => {
           />
         </div>
 
+        {/* 显示数据状态信息 */}
+        {transformedCompletions.length === 0 && (
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
+            <CardContent className="p-6 text-center">
+              <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">暂无历史记录</h3>
+              <p className="text-gray-600 dark:text-gray-400">开始完成习惯打卡，这里将显示您的成长轨迹</p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* 统计卡片 - 移动端2x2布局 */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 md:gap-4">
-          <Card className="min-w-0 dark:bg-gray-800 dark:border-gray-700">
-            <CardContent className="p-2 sm:p-3 md:p-4 text-center">
-              <CheckCircle className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 mx-auto mb-1 sm:mb-2 text-green-600 dark:text-green-400" />
-              <div className="text-sm sm:text-lg md:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{stats.totalCompletions}</div>
-              <div className="text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400">总完成次数</div>
-            </CardContent>
-          </Card>
+        {transformedCompletions.length > 0 && (
+          <>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 md:gap-4">
+              <Card className="min-w-0 dark:bg-gray-800 dark:border-gray-700">
+                <CardContent className="p-2 sm:p-3 md:p-4 text-center">
+                  <CheckCircle className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 mx-auto mb-1 sm:mb-2 text-green-600 dark:text-green-400" />
+                  <div className="text-sm sm:text-lg md:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{stats.totalCompletions}</div>
+                  <div className="text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400">总完成次数</div>
+                </CardContent>
+              </Card>
 
-          <Card className="min-w-0 dark:bg-gray-800 dark:border-gray-700">
-            <CardContent className="p-2 sm:p-3 md:p-4 text-center">
-              <Zap className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 mx-auto mb-1 sm:mb-2 text-amber-500" />
-              <div className="text-sm sm:text-lg md:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{stats.totalEnergy}</div>
-              <div className="text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400">总获得能量</div>
-            </CardContent>
-          </Card>
+              <Card className="min-w-0 dark:bg-gray-800 dark:border-gray-700">
+                <CardContent className="p-2 sm:p-3 md:p-4 text-center">
+                  <Zap className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 mx-auto mb-1 sm:mb-2 text-amber-500" />
+                  <div className="text-sm sm:text-lg md:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{stats.totalEnergy}</div>
+                  <div className="text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400">总获得能量</div>
+                </CardContent>
+              </Card>
 
-          <Card className="min-w-0 dark:bg-gray-800 dark:border-gray-700">
-            <CardContent className="p-2 sm:p-3 md:p-4 text-center">
-              <Calendar className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 mx-auto mb-1 sm:mb-2 text-purple-600 dark:text-purple-400" />
-              <div className="text-sm sm:text-lg md:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{stats.uniqueDays}</div>
-              <div className="text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400">活跃天数</div>
-            </CardContent>
-          </Card>
+              <Card className="min-w-0 dark:bg-gray-800 dark:border-gray-700">
+                <CardContent className="p-2 sm:p-3 md:p-4 text-center">
+                  <Calendar className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 mx-auto mb-1 sm:mb-2 text-purple-600 dark:text-purple-400" />
+                  <div className="text-sm sm:text-lg md:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{stats.uniqueDays}</div>
+                  <div className="text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400">活跃天数</div>
+                </CardContent>
+              </Card>
 
-          <Card className="min-w-0 dark:bg-gray-800 dark:border-gray-700">
-            <CardContent className="p-2 sm:p-3 md:p-4 text-center">
-              <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 mx-auto mb-1 sm:mb-2 text-blue-600 dark:text-blue-400" />
-              <div className="text-sm sm:text-lg md:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
-                {stats.uniqueDays > 0 ? Math.round(stats.totalCompletions / stats.uniqueDays * 10) / 10 : 0}
-              </div>
-              <div className="text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400">日均完成</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 折线图趋势 - 移动端优化 */}
-        <Card className="w-full min-w-0 dark:bg-gray-800 dark:border-gray-700">
-          <CardHeader className="pb-2 sm:pb-3 md:pb-6">
-            <CardTitle className="flex items-center space-x-2 text-sm sm:text-base md:text-lg text-gray-900 dark:text-gray-100">
-              <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-purple-600 dark:text-purple-400" />
-              <span>最近7天趋势</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0 px-2 sm:px-6">
-            <div className="w-full overflow-x-auto">
-              <div className="h-[160px] sm:h-[200px] md:h-[300px] min-w-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
-                  <XAxis 
-                    dataKey="day" 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fill: '#6B7280' }}
-                    className="text-xs dark:fill-gray-400"
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fill: '#6B7280' }}
-                    className="text-xs dark:fill-gray-400"
-                  />
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="completions" 
-                      stroke="#8b5cf6"
-                    strokeWidth={2}
-                      dot={{ fill: '#8b5cf6', strokeWidth: 1, r: 3 }}
-                      activeDot={{ r: 4, stroke: '#8b5cf6', strokeWidth: 2 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="energy" 
-                      stroke="#f59e0b"
-                    strokeWidth={2}
-                      dot={{ fill: '#f59e0b', strokeWidth: 1, r: 3 }}
-                      activeDot={{ r: 4, stroke: '#f59e0b', strokeWidth: 2 }}
-                    strokeDasharray="3 3"
-                  />
-                </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <Card className="min-w-0 dark:bg-gray-800 dark:border-gray-700">
+                <CardContent className="p-2 sm:p-3 md:p-4 text-center">
+                  <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 mx-auto mb-1 sm:mb-2 text-blue-600 dark:text-blue-400" />
+                  <div className="text-sm sm:text-lg md:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
+                    {stats.uniqueDays > 0 ? Math.round(stats.totalCompletions / stats.uniqueDays * 10) / 10 : 0}
+                  </div>
+                  <div className="text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400">日均完成</div>
+                </CardContent>
+              </Card>
             </div>
-            <div className="text-center text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1 sm:mt-2 md:mt-4">
-              实线表示完成次数，虚线表示获得能量
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* 习惯排行 - 移动端优化 */}
-        <Card className="w-full min-w-0 dark:bg-gray-800 dark:border-gray-700">
-          <CardHeader className="pb-2 sm:pb-3 md:pb-6">
-            <CardTitle className="text-sm sm:text-base md:text-lg text-gray-900 dark:text-gray-100">习惯完成排行</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0 px-2 sm:px-6">
-            <div className="space-y-2 md:space-y-3">
-              {Object.entries(stats.habitStats)
-                .sort(([,a], [,b]) => b.completions - a.completions)
-                .slice(0, 5)
-                .map(([habitId, habitStat], index) => {
-                  const habit = habits.find(h => h.id === habitId);
-                  if (!habit) return null;
+            {/* 折线图趋势 - 移动端优化 */}
+            <Card className="w-full min-w-0 dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader className="pb-2 sm:pb-3 md:pb-6">
+                <CardTitle className="flex items-center space-x-2 text-sm sm:text-base md:text-lg text-gray-900 dark:text-gray-100">
+                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-purple-600 dark:text-purple-400" />
+                  <span>最近7天趋势</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0 px-2 sm:px-6">
+                <div className="w-full overflow-x-auto">
+                  <div className="h-[160px] sm:h-[200px] md:h-[300px] min-w-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
+                      <XAxis 
+                        dataKey="day" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 10, fill: '#6B7280' }}
+                        className="text-xs dark:fill-gray-400"
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 10, fill: '#6B7280' }}
+                        className="text-xs dark:fill-gray-400"
+                      />
+                        <Tooltip 
+                          contentStyle={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '12px'
+                          }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="completions" 
+                          stroke="#8b5cf6"
+                        strokeWidth={2}
+                          dot={{ fill: '#8b5cf6', strokeWidth: 1, r: 3 }}
+                          activeDot={{ r: 4, stroke: '#8b5cf6', strokeWidth: 2 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="energy" 
+                          stroke="#f59e0b"
+                        strokeWidth={2}
+                          dot={{ fill: '#f59e0b', strokeWidth: 1, r: 3 }}
+                          activeDot={{ r: 4, stroke: '#f59e0b', strokeWidth: 2 }}
+                        strokeDasharray="3 3"
+                      />
+                    </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="text-center text-xs sm:text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1 sm:mt-2 md:mt-4">
+                  实线表示完成次数，虚线表示获得能量
+                </div>
+              </CardContent>
+            </Card>
 
-                  return (
-                    <div key={habitId} className="flex items-center justify-between p-2 sm:p-3 ranking-item rounded-lg min-w-0 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600">
-                      <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                        <div className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${
-                          index === 0 ? 'bg-yellow-500' : 
-                          index === 1 ? 'bg-gray-400' : 
-                          index === 2 ? 'bg-amber-600' : 'bg-gray-300'
-                        }`}>
-                          {index + 1}
+            {/* 习惯排行 - 移动端优化 */}
+            <Card className="w-full min-w-0 dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader className="pb-2 sm:pb-3 md:pb-6">
+                <CardTitle className="text-sm sm:text-base md:text-lg text-gray-900 dark:text-gray-100">习惯完成排行</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0 px-2 sm:px-6">
+                <div className="space-y-2 md:space-y-3">
+                  {Object.entries(stats.habitStats)
+                    .sort(([,a], [,b]) => b.completions - a.completions)
+                    .slice(0, 5)
+                    .map(([habitId, habitStat], index) => {
+                      const habit = transformedHabits.find(h => h.id === habitId);
+                      if (!habit) return null;
+
+                      return (
+                        <div key={habitId} className="flex items-center justify-between p-2 sm:p-3 ranking-item rounded-lg min-w-0 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600">
+                          <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                            <div className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${
+                              index === 0 ? 'bg-yellow-500' : 
+                              index === 1 ? 'bg-gray-400' : 
+                              index === 2 ? 'bg-amber-600' : 'bg-gray-300'
+                            }`}>
+                              {index + 1}
+                            </div>
+                            <span className="font-medium text-xs sm:text-sm md:text-base truncate text-gray-900 dark:text-gray-100">{habit.name}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 text-xs sm:text-xs md:text-sm flex-shrink-0">
+                            <div className="text-center">
+                              <div className="font-bold text-gray-900 dark:text-gray-100">{habitStat.completions}</div>
+                              <div className="text-gray-500 dark:text-gray-400">次数</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="font-bold text-gray-900 dark:text-gray-100">{habitStat.energy}</div>
+                              <div className="text-gray-500 dark:text-gray-400">能量</div>
+                            </div>
+                          </div>
                         </div>
-                        <span className="font-medium text-xs sm:text-sm md:text-base truncate text-gray-900 dark:text-gray-100">{habit.name}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 text-xs sm:text-xs md:text-sm flex-shrink-0">
-                        <div className="text-center">
-                          <div className="font-bold text-gray-900 dark:text-gray-100">{habitStat.completions}</div>
-                          <div className="text-gray-500 dark:text-gray-400">次数</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="font-bold text-gray-900 dark:text-gray-100">{habitStat.energy}</div>
-                          <div className="text-gray-500 dark:text-gray-400">能量</div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </CardContent>
-        </Card>
+                      );
+                    })}
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </div>
   );

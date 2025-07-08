@@ -17,12 +17,14 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useHabits, Habit } from '@/hooks/useHabits';
 import { useRewards, Reward } from '@/hooks/useRewards';
+import { useHabitCompletions } from '@/hooks/useHabitCompletions';
 
 const Index = () => {
   const { showProgress, showStats, notifications } = useSettings();
   const { user } = useAuth();
-  const { habits, loading: habitsLoading, createHabit, updateHabit, deleteHabit } = useHabits();
-  const { rewards, loading: rewardsLoading, createReward, updateReward, deleteReward, redeemReward } = useRewards();
+  const { habits, loading: habitsLoading, createHabit, updateHabit, deleteHabit, checkInHabit } = useHabits();
+  const { rewards, loading: rewardsLoading, createReward, updateReward, deleteReward, redeemReward, optimisticAddEnergyToReward, rollbackAddEnergyToReward } = useRewards();
+  const { isCompletedToday, optimisticAddCompletion, rollbackAddCompletion, refetch: refetchCompletions } = useHabitCompletions();
   
   const [activeModule, setActiveModule] = useState('today');
   const [habitFormOpen, setHabitFormOpen] = useState(false);
@@ -97,12 +99,12 @@ const Index = () => {
 
   // 菜单项配置
   const menuItems = [
-    { id: 'today', label: '今日习惯', icon: Calendar },
-    { id: 'habits', label: '习惯管理', icon: CheckCircle },
-    { id: 'rewards', label: '奖励管理', icon: Gift },
-    { id: 'bindings', label: '绑定管理', icon: Link2 },
-    { id: 'history', label: '历史记录', icon: BarChart3 },
-    { id: 'settings', label: '设置中心', icon: Settings }
+    { id: 'today', label: '今日习惯', icon: Calendar, shortLabel: '今日' },
+    { id: 'habits', label: '习惯管理', icon: CheckCircle, shortLabel: '习惯' },
+    { id: 'rewards', label: '奖励管理', icon: Gift, shortLabel: '奖励' },
+    { id: 'bindings', label: '绑定管理', icon: Link2, shortLabel: '绑定' },
+    { id: 'history', label: '历史记录', icon: BarChart3, shortLabel: '历史' },
+    { id: 'settings', label: '设置中心', icon: Settings, shortLabel: '设置' }
   ];
 
   // 渲染今日习惯模块
@@ -110,7 +112,7 @@ const Index = () => {
     const activeHabits = habits.filter(h => !h.is_archived);
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pt-6">
         <div className="text-center">
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">今日习惯</h2>
           <p className="text-gray-600 dark:text-gray-400">专注今天，让每一次打卡都充满成就感</p>
@@ -119,6 +121,7 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {activeHabits.map(habit => {
             const boundReward = rewards.find(r => r.id === habit.binding_reward_id);
+            const isCompleted = isCompletedToday(habit.id);
             
             return (
               <Card key={habit.id} className="transition-all duration-200 hover:shadow-lg dark:bg-gray-800 dark:border-gray-700">
@@ -131,9 +134,36 @@ const Index = () => {
                     </div>
                     
                     <Button 
-                      className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+                      className={cn(
+                        "w-full",
+                        isCompleted 
+                          ? "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600" 
+                          : "bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+                      )}
+                      onClick={async () => {
+                        // 乐观更新：立即显示已完成状态
+                        optimisticAddCompletion(habit.id);
+                        
+                        // 如果有绑定奖励，也立即更新奖励能量
+                        if (habit.binding_reward_id) {
+                          optimisticAddEnergyToReward(habit.binding_reward_id, habit.energy_value);
+                        }
+                        
+                        try {
+                          await checkInHabit(habit.id);
+                          // 成功后重新获取数据确保一致性
+                          refetchCompletions();
+                        } catch (error) {
+                          // 失败时回滚所有乐观更新
+                          rollbackAddCompletion(habit.id);
+                          if (habit.binding_reward_id) {
+                            rollbackAddEnergyToReward(habit.binding_reward_id, habit.energy_value);
+                          }
+                        }
+                      }}
+                      disabled={isCompleted}
                     >
-                      🎯 立即打卡
+                      {isCompleted ? '✅ 今日已完成' : '🎯 立即打卡'}
                     </Button>
                     
                     {boundReward && (
@@ -198,28 +228,27 @@ const Index = () => {
     ];
 
     return (
-      <div className="space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">习惯管理</h2>
-            <p className="text-gray-600 dark:text-gray-400">管理您的习惯，让每一个小目标都成为成长的动力</p>
-          </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <EnhancedSelect
-              value={habitFilter}
-              onValueChange={setHabitFilter}
-              options={habitFilterOptions}
-              width="w-48"
-              placeholder="选择筛选条件"
-            />
-            <Button 
-              className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 transition-all duration-200 hover:shadow-lg"
-              onClick={() => setHabitFormOpen(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              添加习惯
-            </Button>
-          </div>
+      <div className="space-y-6 pt-6">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">习惯管理</h2>
+          <p className="text-gray-600 dark:text-gray-400">管理您的习惯，让每一个小目标都成为成长的动力</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 mb-6">
+          <EnhancedSelect
+            value={habitFilter}
+            onValueChange={setHabitFilter}
+            options={habitFilterOptions}
+            width="w-48"
+            placeholder="选择筛选条件"
+          />
+          <Button 
+            className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 transition-all duration-200 hover:shadow-lg"
+            onClick={() => setHabitFormOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            添加习惯
+          </Button>
         </div>
 
         <div>
@@ -395,28 +424,27 @@ const Index = () => {
     ];
 
     return (
-      <div className="space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">奖励管理</h2>
-            <p className="text-gray-600 dark:text-gray-400">设定目标，用能量点亮梦想</p>
-          </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <EnhancedSelect
-              value={rewardFilter}
-              onValueChange={setRewardFilter}
-              options={rewardFilterOptions}
-              width="w-48"
-              placeholder="选择筛选条件"
-            />
-            <Button 
-              className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 transition-all duration-200 hover:shadow-lg"
-              onClick={() => setRewardFormOpen(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              添加奖励
-            </Button>
-          </div>
+      <div className="space-y-6 pt-6">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">奖励管理</h2>
+          <p className="text-gray-600 dark:text-gray-400">设定目标，用能量点亮梦想</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 mb-6">
+          <EnhancedSelect
+            value={rewardFilter}
+            onValueChange={setRewardFilter}
+            options={rewardFilterOptions}
+            width="w-48"
+            placeholder="选择筛选条件"
+          />
+          <Button 
+            className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 transition-all duration-200 hover:shadow-lg"
+            onClick={() => setRewardFormOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            添加奖励
+          </Button>
         </div>
 
         <div>
@@ -584,28 +612,34 @@ const Index = () => {
       case 'bindings':
         return renderBindingsModule();
       case 'history':
-        return (
-          <HistoryView
-            habits={habits.map(h => ({
-              id: h.id,
-              name: h.name,
-              energyValue: h.energy_value,
-              frequency: 'daily',
-              targetCount: 1,
-              isArchived: h.is_archived,
-              createdAt: h.created_at
-            }))}
-            completions={[]}
-          />
-        );
+        return <HistoryView />;
       case 'settings':
         return (
+          <div className="space-y-6">
+            {/* 手机端显示用户账户 */}
+            <div className="lg:hidden">
+              <Card className="dark:bg-gray-800 dark:border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="dark:text-gray-100">用户账户</span>
+                    <UserAccountPopover />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    点击右侧头像图标管理您的账户设置
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+            
           <SettingsCenter
             onExportData={() => {}}
             onImportData={() => {}}
             onClearAllData={() => {}}
             onResetToDefaults={() => {}}
           />
+          </div>
         );
       default:
         return renderTodayModule();
@@ -615,7 +649,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
       {/* 左侧边栏 */}
-      <div className="w-64 bg-white dark:bg-gray-800 shadow-lg border-r dark:border-gray-700">
+      <div className="hidden lg:block w-64 bg-white dark:bg-gray-800 shadow-lg border-r dark:border-gray-700">
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
             <div className="text-center flex-1">
@@ -655,8 +689,37 @@ const Index = () => {
       </div>
 
       {/* 右侧内容区 */}
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div className="hidden lg:block flex-1 p-6 overflow-y-auto">
         {renderContent()}
+      </div>
+
+      {/* 手机端布局 */}
+      <div className="lg:hidden w-full">
+        {/* 手机端内容区 */}
+        <div className="p-4 pb-20">
+          {renderContent()}
+        </div>
+
+        {/* 手机端底部导航栏 */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg border-t dark:border-gray-700 z-50">
+          <div className="grid grid-cols-6 py-2">
+            {menuItems.map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveModule(item.id)}
+                className={cn(
+                  "flex flex-col items-center justify-center py-2 px-1 transition-colors",
+                  activeModule === item.id
+                    ? "text-purple-600 dark:text-purple-400"
+                    : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                )}
+              >
+                <item.icon className="h-5 w-5 mb-1" />
+                <span className="text-xs">{item.shortLabel}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

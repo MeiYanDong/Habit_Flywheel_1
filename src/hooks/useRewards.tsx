@@ -144,6 +144,23 @@ export const useRewards = () => {
   const redeemReward = async (id: string) => {
     if (!user) return;
 
+    // 乐观更新：立即更新UI状态
+    const rewardToRedeem = rewards.find(r => r.id === id);
+    if (!rewardToRedeem) return;
+
+    // 立即更新本地状态
+    setRewards(prev => prev.map(reward => 
+      reward.id === id 
+        ? { ...reward, is_redeemed: true, redeemed_at: new Date().toISOString() }
+        : reward
+    ));
+
+    // 立即显示成功提示
+    toast({
+      title: "奖励兑换成功",
+      description: `恭喜您兑换了"${rewardToRedeem.name}"！`,
+    });
+
     try {
       const { data, error } = await supabase
         .from('rewards')
@@ -157,18 +174,23 @@ export const useRewards = () => {
 
       if (error) throw error;
       
+      // 确保数据一致性
       setRewards(prev => prev.map(reward => reward.id === id ? data : reward));
-      toast({
-        title: "奖励兑换成功",
-        description: `恭喜您兑换了"${data.name}"！`,
-      });
       
       return data;
     } catch (error) {
       console.error('Error redeeming reward:', error);
+      
+      // 回滚乐观更新
+      setRewards(prev => prev.map(reward => 
+        reward.id === id 
+          ? { ...reward, is_redeemed: false, redeemed_at: undefined }
+          : reward
+      ));
+      
       toast({
         title: "兑换奖励失败",
-        description: "无法兑换奖励",
+        description: "无法兑换奖励，请稍后再试",
         variant: "destructive",
       });
     }
@@ -183,6 +205,24 @@ export const useRewards = () => {
     }
   }, [user]);
 
+  // 乐观更新：立即增加奖励能量
+  const optimisticAddEnergyToReward = (rewardId: string, energyAmount: number) => {
+    setRewards(prev => prev.map(reward => 
+      reward.id === rewardId 
+        ? { ...reward, current_energy: reward.current_energy + energyAmount }
+        : reward
+    ));
+  };
+
+  // 回滚更新：减少奖励能量
+  const rollbackAddEnergyToReward = (rewardId: string, energyAmount: number) => {
+    setRewards(prev => prev.map(reward => 
+      reward.id === rewardId 
+        ? { ...reward, current_energy: Math.max(0, reward.current_energy - energyAmount) }
+        : reward
+    ));
+  };
+
   return {
     rewards,
     loading,
@@ -190,6 +230,8 @@ export const useRewards = () => {
     updateReward,
     deleteReward,
     redeemReward,
+    optimisticAddEnergyToReward,
+    rollbackAddEnergyToReward,
     refetch: fetchRewards
   };
 };

@@ -94,7 +94,7 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-6">
       <div className="text-center">
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">设置中心</h2>
         <p className="text-gray-600 dark:text-gray-400">个性化设置，让体验更贴心</p>
