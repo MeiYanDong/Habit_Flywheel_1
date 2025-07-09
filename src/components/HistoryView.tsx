@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -6,15 +6,20 @@ import { EnhancedSelect } from '@/components/ui/enhanced-select';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { BarChart3, Calendar, TrendingUp, Zap, CheckCircle, Clock, CalendarDays, Archive } from 'lucide-react';
 import { useHabits } from '@/hooks/useHabits';
-import { useHabitCompletions } from '@/hooks/useHabitCompletions';
+import { useHabitCompletions, TimeRange } from '@/hooks/useHabitCompletions';
 
 const HistoryView: React.FC = () => {
-  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'all'>('week');
+  const [timeRange, setTimeRange] = useState<TimeRange>('week');
   const [selectedHabit, setSelectedHabit] = useState<string>('all');
   
-  // 直接使用hooks获取数据
+  // 使用优化版的hooks，传递时间范围参数
   const { habits, loading: habitsLoading } = useHabits();
-  const { completions, loading: completionsLoading } = useHabitCompletions();
+  const { 
+    completions, 
+    loading: completionsLoading, 
+    preloadTimeRange,
+    cacheInfo 
+  } = useHabitCompletions(timeRange);
 
   // 转换数据格式以匹配组件需求
   const transformedHabits = useMemo(() => {
@@ -36,7 +41,27 @@ const HistoryView: React.FC = () => {
     }));
   }, [completions]);
 
-  // 计算统计数据
+  // 预加载其他时间范围的数据（智能预加载）
+  useEffect(() => {
+    if (!completionsLoading && completions.length > 0) {
+      // 根据当前时间范围，预加载用户可能查看的下一个时间范围
+      const preloadMap: Record<TimeRange, TimeRange[]> = {
+        'week': ['month'], // 查看周数据的用户可能想看月数据
+        'month': ['week', 'all'], // 查看月数据的用户可能想看周或全部数据
+        'all': ['month'] // 查看全部数据的用户可能想看月数据
+      };
+      
+      const toPreload = preloadMap[timeRange] || [];
+      toPreload.forEach(range => {
+        if (!cacheInfo.hasData(range)) {
+          // 延迟500ms后预加载，避免影响当前页面
+          setTimeout(() => preloadTimeRange(range), 500);
+        }
+      });
+    }
+  }, [timeRange, completionsLoading, completions.length, preloadTimeRange, cacheInfo]);
+
+  // 计算统计数据（客户端筛选逻辑保持不变，但数据量已减少）
   const stats = useMemo(() => {
     if (completionsLoading || habitsLoading) {
       return {
@@ -49,25 +74,9 @@ const HistoryView: React.FC = () => {
       };
     }
 
-    const now = new Date();
-    let startDate: Date;
-
-    switch (timeRange) {
-      case 'week':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case 'month':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      case 'all':
-        startDate = new Date('2020-01-01');
-        break;
-    }
-
+    // 由于数据已经在服务端按时间范围过滤，这里只需要按习惯过滤
     const filteredCompletions = transformedCompletions.filter(c => {
-      const completionDate = new Date(c.date);
-      const habitFilter = selectedHabit === 'all' || c.habitId === selectedHabit;
-      return completionDate >= startDate && habitFilter;
+      return selectedHabit === 'all' || c.habitId === selectedHabit;
     });
 
     const totalCompletions = filteredCompletions.length;
@@ -104,7 +113,7 @@ const HistoryView: React.FC = () => {
       habitStats,
       filteredCompletions
     };
-  }, [transformedCompletions, timeRange, selectedHabit, completionsLoading, habitsLoading]);
+  }, [transformedCompletions, selectedHabit, completionsLoading, habitsLoading]);
 
   // 获取最近7天的数据用于折线图显示
   const chartData = useMemo(() => {
@@ -124,15 +133,29 @@ const HistoryView: React.FC = () => {
     return days;
   }, [stats.dailyStats]);
 
-  // 如果数据正在加载，显示加载状态
+  // 时间范围变化处理（优化：添加预加载提示）
+  const handleTimeRangeChange = (newRange: TimeRange) => {
+    setTimeRange(newRange);
+    // 显示加载提示（如果数据未缓存）
+    if (!cacheInfo.hasData(newRange)) {
+      // 这里可以添加加载提示逻辑
+      console.log(`Loading ${newRange} data...`);
+    }
+  };
+
+  // 如果数据正在加载，显示优化的加载状态
   if (habitsLoading || completionsLoading) {
     return (
       <div className="w-full max-w-none overflow-x-hidden">
         <div className="space-y-6 pt-6 p-2 sm:p-4 lg:px-0">
           <div className="text-center">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">历史记录</h2>
-            <p className="text-gray-600 dark:text-gray-400">加载中...</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              {cacheInfo.hasData(timeRange) ? '从缓存加载中...' : '正在加载数据...'}
+            </p>
           </div>
+          
+          {/* 优化的骨架屏 */}
           <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 md:gap-4">
             {[1, 2, 3, 4].map(i => (
               <Card key={i} className="min-w-0 dark:bg-gray-800 dark:border-gray-700">
@@ -146,6 +169,13 @@ const HistoryView: React.FC = () => {
               </Card>
             ))}
           </div>
+          
+          {/* 显示缓存状态（开发模式下） */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="text-xs text-gray-500 text-center">
+              缓存状态: {cacheInfo.size} 个时间范围已缓存
+            </div>
+          )}
         </div>
       </div>
     );
@@ -172,7 +202,7 @@ const HistoryView: React.FC = () => {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <EnhancedSelect
             value={timeRange}
-            onValueChange={(value: 'week' | 'month' | 'all') => setTimeRange(value)}
+            onValueChange={(value: TimeRange) => handleTimeRangeChange(value)}
             options={[
               {
                 value: 'week',

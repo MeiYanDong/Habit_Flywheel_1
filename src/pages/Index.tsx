@@ -23,7 +23,7 @@ const Index = () => {
   const { showProgress, showStats, notifications } = useSettings();
   const { user } = useAuth();
   const { habits, loading: habitsLoading, createHabit, updateHabit, deleteHabit, checkInHabit } = useHabits();
-  const { rewards, loading: rewardsLoading, createReward, updateReward, deleteReward, redeemReward, optimisticAddEnergyToReward, rollbackAddEnergyToReward } = useRewards();
+  const { rewards, loading: rewardsLoading, createReward, updateReward, deleteReward, redeemReward, optimisticAddEnergyToReward, rollbackAddEnergyToReward, refetch: refetchRewards } = useRewards();
   const { isCompletedToday, optimisticAddCompletion, rollbackAddCompletion, refetch: refetchCompletions } = useHabitCompletions();
   
   const [activeModule, setActiveModule] = useState('today');
@@ -94,7 +94,9 @@ const Index = () => {
 
   // 更新习惯绑定
   const updateHabitBinding = async (habitId: string, updates: { bindingRewardId?: string }) => {
-    await updateHabit(habitId, { binding_reward_id: updates.bindingRewardId });
+    // 将 undefined 转换为 null，确保数据库字段正确清空
+    const binding_reward_id = updates.bindingRewardId === undefined ? null : updates.bindingRewardId;
+    await updateHabit(habitId, { binding_reward_id });
   };
 
   // 菜单项配置
@@ -153,6 +155,8 @@ const Index = () => {
                           await checkInHabit(habit.id);
                           // 成功后重新获取数据确保一致性
                           refetchCompletions();
+                          // 同时刷新奖励数据，确保绑定奖励的能量正确更新
+                          refetchRewards();
                         } catch (error) {
                           // 失败时回滚所有乐观更新
                           rollbackAddCompletion(habit.id);
@@ -234,16 +238,18 @@ const Index = () => {
           <p className="text-gray-600 dark:text-gray-400">管理您的习惯，让每一个小目标都成为成长的动力</p>
         </div>
         
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 mb-6">
-          <EnhancedSelect
-            value={habitFilter}
-            onValueChange={setHabitFilter}
-            options={habitFilterOptions}
-            width="w-48"
-            placeholder="选择筛选条件"
-          />
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
+          <div className="w-full sm:w-auto flex justify-center">
+            <EnhancedSelect
+              value={habitFilter}
+              onValueChange={setHabitFilter}
+              options={habitFilterOptions}
+              width="w-48"
+              placeholder="选择筛选条件"
+            />
+          </div>
           <Button 
-            className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 transition-all duration-200 hover:shadow-lg"
+            className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 transition-all duration-200 hover:shadow-lg w-full sm:w-auto"
             onClick={() => setHabitFormOpen(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -430,16 +436,18 @@ const Index = () => {
           <p className="text-gray-600 dark:text-gray-400">设定目标，用能量点亮梦想</p>
         </div>
         
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 mb-6">
-          <EnhancedSelect
-            value={rewardFilter}
-            onValueChange={setRewardFilter}
-            options={rewardFilterOptions}
-            width="w-48"
-            placeholder="选择筛选条件"
-          />
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
+          <div className="w-full sm:w-auto flex justify-center">
+            <EnhancedSelect
+              value={rewardFilter}
+              onValueChange={setRewardFilter}
+              options={rewardFilterOptions}
+              width="w-48"
+              placeholder="选择筛选条件"
+            />
+          </div>
           <Button 
-            className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 transition-all duration-200 hover:shadow-lg"
+            className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 transition-all duration-200 hover:shadow-lg w-full sm:w-auto"
             onClick={() => setRewardFormOpen(true)}
           >
             <Plus className="h-4 w-4 mr-2" />

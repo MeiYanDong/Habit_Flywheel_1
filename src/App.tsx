@@ -1,10 +1,11 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { PWAUpdatePrompt } from "@/components/PWAUpdatePrompt";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import { Loader2 } from "lucide-react";
@@ -54,6 +55,8 @@ function App() {
         <SettingsProvider>
           <TooltipProvider>
             <Toaster />
+            <PWAUpdatePrompt />
+            <PWAInstallPrompt />
             <BrowserRouter>
               <Routes>
                 <Route 
