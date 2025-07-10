@@ -22,9 +22,9 @@ import { useHabitCompletions } from '@/hooks/useHabitCompletions';
 const Index = () => {
   const { showProgress, showStats, notifications } = useSettings();
   const { user } = useAuth();
-  const { habits, loading: habitsLoading, createHabit, updateHabit, deleteHabit, checkInHabit } = useHabits();
-  const { rewards, loading: rewardsLoading, createReward, updateReward, deleteReward, redeemReward, optimisticAddEnergyToReward, rollbackAddEnergyToReward, refetch: refetchRewards } = useRewards();
-  const { isCompletedToday, optimisticAddCompletion, rollbackAddCompletion, refetch: refetchCompletions } = useHabitCompletions();
+  const { habits, loading: habitsLoading, createHabit, updateHabit, deleteHabit, checkInHabit, unCheckInHabit } = useHabits();
+  const { rewards, loading: rewardsLoading, createReward, updateReward, deleteReward, redeemReward, optimisticAddEnergyToReward, rollbackAddEnergyToReward, optimisticSubtractEnergyFromReward, rollbackSubtractEnergyFromReward, refetch: refetchRewards } = useRewards();
+  const { isCompletedToday, optimisticAddCompletion, rollbackAddCompletion, optimisticRemoveCompletion, rollbackRemoveCompletion, clearOptimisticRemoval, refetch: refetchCompletions } = useHabitCompletions();
   
   const [activeModule, setActiveModule] = useState('today');
   const [habitFormOpen, setHabitFormOpen] = useState(false);
@@ -143,31 +143,49 @@ const Index = () => {
                           : "bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
                       )}
                       onClick={async () => {
-                        // 乐观更新：立即显示已完成状态
-                        optimisticAddCompletion(habit.id);
-                        
-                        // 如果有绑定奖励，也立即更新奖励能量
-                        if (habit.binding_reward_id) {
-                          optimisticAddEnergyToReward(habit.binding_reward_id, habit.energy_value);
-                        }
-                        
-                        try {
-                          await checkInHabit(habit.id);
-                          // 成功后重新获取数据确保一致性
-                          refetchCompletions();
-                          // 同时刷新奖励数据，确保绑定奖励的能量正确更新
-                          refetchRewards();
-                        } catch (error) {
-                          // 失败时回滚所有乐观更新
-                          rollbackAddCompletion(habit.id);
+                        if (isCompleted) {
+                          // 取消打卡
+                          optimisticRemoveCompletion(habit.id);
                           if (habit.binding_reward_id) {
-                            rollbackAddEnergyToReward(habit.binding_reward_id, habit.energy_value);
+                            optimisticSubtractEnergyFromReward(habit.binding_reward_id, habit.energy_value);
+                          }
+                          try {
+                            await unCheckInHabit(habit.id);
+                            // 成功后重新获取数据确保一致性
+                            refetchCompletions();
+                            // 同时刷新奖励数据，确保绑定奖励的能量正确更新
+                            refetchRewards();
+                            clearOptimisticRemoval(habit.id); // 清理乐观删除状态
+                          } catch (error) {
+                            // 失败时回滚所有乐观更新
+                            rollbackRemoveCompletion(habit.id);
+                            if (habit.binding_reward_id) {
+                              rollbackSubtractEnergyFromReward(habit.binding_reward_id, habit.energy_value);
+                            }
+                          }
+                        } else {
+                          // 打卡
+                          optimisticAddCompletion(habit.id);
+                          if (habit.binding_reward_id) {
+                            optimisticAddEnergyToReward(habit.binding_reward_id, habit.energy_value);
+                          }
+                          try {
+                            await checkInHabit(habit.id);
+                            // 成功后重新获取数据确保一致性
+                            refetchCompletions();
+                            // 同时刷新奖励数据，确保绑定奖励的能量正确更新
+                            refetchRewards();
+                          } catch (error) {
+                            // 失败时回滚所有乐观更新
+                            rollbackAddCompletion(habit.id);
+                            if (habit.binding_reward_id) {
+                              rollbackAddEnergyToReward(habit.binding_reward_id, habit.energy_value);
+                            }
                           }
                         }
                       }}
-                      disabled={isCompleted}
                     >
-                      {isCompleted ? '✅ 今日已完成' : '🎯 立即打卡'}
+                      {isCompleted ? '✅ 已完成 (点击取消)' : '🎯 立即打卡'}
                     </Button>
                     
                     {boundReward && (

@@ -316,6 +316,171 @@ export const useHabits = () => {
     }
   };
 
+  // 取消打卡功能
+  const unCheckInHabit = async (habitId: string) => {
+    if (!user) return;
+
+    try {
+      // 找到对应的习惯
+      const habit = habits.find(h => h.id === habitId);
+      if (!habit) {
+        toast({
+          title: "习惯不存在",
+          description: "找不到指定的习惯",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // 查找今日的打卡记录
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+      const { data: existingCompletion, error: checkError } = await supabase
+        .from('habit_completions')
+        .select('*')
+        .eq('habit_id', habitId)
+        .eq('user_id', user.id)
+        .gte('completed_at', startOfDay.toISOString())
+        .lt('completed_at', endOfDay.toISOString())
+        .single();
+
+      if (checkError) {
+        if (checkError.code === 'PGRST116') {
+          toast({
+            title: "今日未打卡",
+            description: `您今天还没有完成"${habit.name}"的打卡`,
+            variant: "default",
+          });
+          return;
+        }
+        throw checkError;
+      }
+
+      if (!existingCompletion) {
+        toast({
+          title: "今日未打卡",
+          description: `您今天还没有完成"${habit.name}"的打卡`,
+          variant: "default",
+        });
+        return;
+      }
+
+      // 删除打卡记录
+      const { error: deleteError } = await supabase
+        .from('habit_completions')
+        .delete()
+        .eq('id', existingCompletion.id);
+
+      if (deleteError) throw deleteError;
+
+      // 扣除用户总能量
+      let energyUpdateSuccess = false;
+      let attempts = 0;
+      const maxAttempts = 3;
+      
+      while (!energyUpdateSuccess && attempts < maxAttempts) {
+        attempts++;
+        
+        const { data: currentEnergy, error: energyError } = await supabase
+          .from('user_energy')
+          .select('total_energy')
+          .eq('user_id', user.id)
+          .single();
+
+        if (energyError) {
+          console.error('Error getting user energy:', energyError);
+          break;
+        }
+
+        const newTotalEnergy = Math.max(0, (currentEnergy?.total_energy || 0) - habit.energy_value);
+        const { error: updateEnergyError } = await supabase
+          .from('user_energy')
+          .update({
+            total_energy: newTotalEnergy,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+
+        if (!updateEnergyError) {
+          energyUpdateSuccess = true;
+        } else {
+          console.error(`Error updating user energy (attempt ${attempts}):`, updateEnergyError);
+          // 短暂延迟后重试
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+        }
+      }
+
+      // 如果有绑定奖励，扣除奖励能量
+      if (habit.binding_reward_id) {
+        let rewardUpdateSuccess = false;
+        let rewardAttempts = 0;
+        
+        while (!rewardUpdateSuccess && rewardAttempts < maxAttempts) {
+          rewardAttempts++;
+          
+          const { data: currentReward, error: getRewardError } = await supabase
+            .from('rewards')
+            .select('current_energy')
+            .eq('id', habit.binding_reward_id)
+            .eq('user_id', user.id)
+            .single();
+
+          if (getRewardError) {
+            console.error('Error getting reward energy:', getRewardError);
+            break; // 如果获取奖励失败，退出重试循环
+          }
+
+          const newCurrentEnergy = Math.max(0, (currentReward.current_energy || 0) - habit.energy_value);
+          const { error: rewardError } = await supabase
+            .from('rewards')
+            .update({
+              current_energy: newCurrentEnergy
+            })
+            .eq('id', habit.binding_reward_id)
+            .eq('user_id', user.id)
+            .eq('current_energy', currentReward.current_energy); // 乐观锁：只有当前能量值没变时才更新
+
+          if (!rewardError) {
+            rewardUpdateSuccess = true;
+          } else {
+            console.error(`Error updating reward energy (attempt ${rewardAttempts}):`, rewardError);
+            // 短暂延迟后重试
+            if (rewardAttempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+            }
+          }
+        }
+        
+        if (!rewardUpdateSuccess) {
+          console.error('Failed to update reward energy after multiple attempts');
+        }
+      }
+
+      toast({
+        title: "取消打卡成功",
+        description: `已取消"${habit.name}"的打卡，扣除 ${habit.energy_value} 点能量`,
+        variant: "default",
+      });
+
+      return true; // 成功返回 true
+
+    } catch (error) {
+      console.error('Error unchecking habit:', error);
+      
+      toast({
+        title: "取消打卡失败",
+        description: "无法取消打卡，请稍后再试",
+        variant: "destructive",
+      });
+      
+      throw error; // 抛出错误以便调用方处理
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchHabits();
@@ -332,6 +497,7 @@ export const useHabits = () => {
     updateHabit,
     deleteHabit,
     checkInHabit,
+    unCheckInHabit,
     refetch: fetchHabits
   };
 };

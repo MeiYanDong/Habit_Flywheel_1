@@ -25,6 +25,7 @@ interface CacheData {
 export const useHabitCompletions = (timeRange: TimeRange = 'week') => {
   const [completions, setCompletions] = useState<HabitCompletion[]>([]);
   const [todayCompletions, setTodayCompletions] = useState<string[]>([]);
+  const [optimisticRemovals, setOptimisticRemovals] = useState<Set<string>>(new Set()); // 跟踪乐观删除的习惯ID
   const [loading, setLoading] = useState(true);
   const [cache, setCache] = useState<Map<TimeRange, CacheData>>(new Map());
   const { user } = useAuth();
@@ -96,14 +97,22 @@ export const useHabitCompletions = (timeRange: TimeRange = 'week') => {
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
       
-      const todayCompleted = completionsData
+      const todayCompletedFromDB = completionsData
         .filter(completion => {
           const completedAt = new Date(completion.completed_at);
           return completedAt >= startOfDay && completedAt < endOfDay;
         })
         .map(completion => completion.habit_id);
       
-      setTodayCompletions(todayCompleted);
+      // 合并数据库中的完成状态和当前的乐观更新状态
+      // 同时排除乐观删除的项目，避免覆盖正在进行的取消打卡操作
+      setTodayCompletions(prev => {
+        // 从数据库数据中过滤掉乐观删除的项目
+        const filteredDBData = todayCompletedFromDB.filter(id => !optimisticRemovals.has(id));
+        // 创建新的完成列表，包含过滤后的数据库数据和保留的乐观更新
+        const combinedCompletions = new Set([...filteredDBData, ...prev]);
+        return Array.from(combinedCompletions);
+      });
       
     } catch (error) {
       console.error('Error fetching habit completions:', error);
@@ -115,7 +124,7 @@ export const useHabitCompletions = (timeRange: TimeRange = 'week') => {
     } finally {
       setLoading(false);
     }
-  }, [user, timeRange, cache, getStartDate, isCacheValid, toast]);
+  }, [user, timeRange, cache, getStartDate, isCacheValid, toast, optimisticRemovals]);
 
   // 检查习惯今日是否已完成
   const isCompletedToday = useCallback((habitId: string): boolean => {
@@ -138,6 +147,20 @@ export const useHabitCompletions = (timeRange: TimeRange = 'week') => {
   // 清除缓存
   const clearCache = useCallback(() => {
     setCache(new Map());
+  }, []);
+
+  // 清理乐观删除列表中的指定项目
+  const clearOptimisticRemoval = useCallback((habitId: string) => {
+    setOptimisticRemovals(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(habitId);
+      return newSet;
+    });
+  }, []);
+
+  // 重置所有乐观删除
+  const resetOptimisticRemovals = useCallback(() => {
+    setOptimisticRemovals(new Set());
   }, []);
 
   // 预加载下一个时间范围的数据
@@ -177,13 +200,20 @@ export const useHabitCompletions = (timeRange: TimeRange = 'week') => {
     } else {
       setCompletions([]);
       setTodayCompletions([]);
+      setOptimisticRemovals(new Set()); // 重置乐观删除列表
       setLoading(false);
     }
   }, [user, timeRange, fetchCompletions]);
 
   // 乐观更新：立即添加今日完成状态
   const optimisticAddCompletion = useCallback((habitId: string) => {
-    setTodayCompletions(prev => [...prev, habitId]);
+    setTodayCompletions(prev => {
+      // 检查是否已经存在，避免重复添加
+      if (prev.includes(habitId)) {
+        return prev;
+      }
+      return [...prev, habitId];
+    });
     // 清除相关缓存，确保下次获取最新数据
     clearCache();
   }, [clearCache]);
@@ -191,6 +221,30 @@ export const useHabitCompletions = (timeRange: TimeRange = 'week') => {
   // 回滚更新：移除乐观添加的完成状态
   const rollbackAddCompletion = useCallback((habitId: string) => {
     setTodayCompletions(prev => prev.filter(id => id !== habitId));
+  }, []);
+
+  // 乐观更新：立即移除今日完成状态（取消打卡）
+  const optimisticRemoveCompletion = useCallback((habitId: string) => {
+    setTodayCompletions(prev => prev.filter(id => id !== habitId));
+    setOptimisticRemovals(prev => new Set([...prev, habitId])); // 添加到乐观删除列表
+    // 清除相关缓存，确保下次获取最新数据
+    clearCache();
+  }, [clearCache]);
+
+  // 回滚更新：恢复取消打卡的完成状态
+  const rollbackRemoveCompletion = useCallback((habitId: string) => {
+    setTodayCompletions(prev => {
+      // 检查是否已经存在，避免重复添加
+      if (prev.includes(habitId)) {
+        return prev;
+      }
+      return [...prev, habitId];
+    });
+    setOptimisticRemovals(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(habitId);
+      return newSet;
+    }); // 从乐观删除列表移除
   }, []);
 
   return {
@@ -201,6 +255,10 @@ export const useHabitCompletions = (timeRange: TimeRange = 'week') => {
     getHabitStats,
     optimisticAddCompletion,
     rollbackAddCompletion,
+    optimisticRemoveCompletion,
+    rollbackRemoveCompletion,
+    clearOptimisticRemoval, // 新增：清理单个乐观删除项目
+    resetOptimisticRemovals, // 新增：重置所有乐观删除
     refetch: () => fetchCompletions(timeRange),
     clearCache,
     preloadTimeRange,

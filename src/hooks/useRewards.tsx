@@ -214,11 +214,29 @@ export const useRewards = () => {
     ));
   };
 
-  // 回滚更新：减少奖励能量
+  // 回滚更新：回滚增加的奖励能量
   const rollbackAddEnergyToReward = (rewardId: string, energyAmount: number) => {
     setRewards(prev => prev.map(reward => 
       reward.id === rewardId 
         ? { ...reward, current_energy: Math.max(0, reward.current_energy - energyAmount) }
+        : reward
+    ));
+  };
+
+  // 乐观更新：立即扣除奖励能量（取消打卡）
+  const optimisticSubtractEnergyFromReward = (rewardId: string, energyAmount: number) => {
+    setRewards(prev => prev.map(reward => 
+      reward.id === rewardId 
+        ? { ...reward, current_energy: Math.max(0, reward.current_energy - energyAmount) }
+        : reward
+    ));
+  };
+
+  // 回滚更新：恢复扣除的奖励能量
+  const rollbackSubtractEnergyFromReward = (rewardId: string, energyAmount: number) => {
+    setRewards(prev => prev.map(reward => 
+      reward.id === rewardId 
+        ? { ...reward, current_energy: reward.current_energy + energyAmount }
         : reward
     ));
   };
@@ -232,6 +250,8 @@ export const useRewards = () => {
     redeemReward,
     optimisticAddEnergyToReward,
     rollbackAddEnergyToReward,
+    optimisticSubtractEnergyFromReward,
+    rollbackSubtractEnergyFromReward,
     refetch: fetchRewards
   };
 };
