@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useTranslation } from 'react-i18next';
 
 interface HabitFormData {
   name: string;
@@ -56,6 +57,7 @@ const HabitForm: React.FC<HabitFormProps> = ({
   rewards,
   isEditing = false
 }) => {
+  const { t } = useTranslation();
   const form = useForm<HabitFormData>({
     defaultValues: {
       name: '',
@@ -113,7 +115,7 @@ const HabitForm: React.FC<HabitFormProps> = ({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? '编辑习惯' : '创建新习惯'}
+            {isEditing ? t('habits.edit') : t('habits.create')}
           </DialogTitle>
         </DialogHeader>
         
@@ -122,12 +124,12 @@ const HabitForm: React.FC<HabitFormProps> = ({
             <FormField
               control={form.control}
               name="name"
-              rules={{ required: '习惯名称不能为空' }}
+              rules={{ required: t('habits.nameRequired') }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>习惯名称</FormLabel>
+                  <FormLabel>{t('habits.name')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="例如：每日阅读" {...field} />
+                    <Input placeholder={t('habits.namePlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -139,10 +141,10 @@ const HabitForm: React.FC<HabitFormProps> = ({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>描述（可选）</FormLabel>
+                  <FormLabel>{t('habits.description')}</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="描述这个习惯的具体内容..."
+                      placeholder={t('habits.descriptionPlaceholder')}
                       className="resize-none"
                       {...field}
                     />
@@ -156,13 +158,13 @@ const HabitForm: React.FC<HabitFormProps> = ({
               control={form.control}
               name="energyValue"
               rules={{ 
-                required: '能量值不能为空',
-                min: { value: 1, message: '能量值必须大于0' },
-                max: { value: 100, message: '能量值不能超过100' }
+                required: t('habits.energyRequired'),
+                min: { value: 1, message: t('habits.energyMin') },
+                max: { value: 100, message: t('habits.energyMax') }
               }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>能量值</FormLabel>
+                  <FormLabel>{t('habits.energyValue')}</FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
@@ -181,7 +183,7 @@ const HabitForm: React.FC<HabitFormProps> = ({
               name="frequency"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>频率</FormLabel>
+                  <FormLabel>{t('habits.frequency')}</FormLabel>
                   <FormControl>
                     <div className="flex space-x-2">
                       <button
@@ -193,7 +195,7 @@ const HabitForm: React.FC<HabitFormProps> = ({
                             : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400 hover:bg-purple-50'
                         }`}
                       >
-                        每日
+                        {t('habits.daily')}
                       </button>
                       <button
                         type="button"
@@ -204,7 +206,7 @@ const HabitForm: React.FC<HabitFormProps> = ({
                             : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400 hover:bg-purple-50'
                         }`}
                       >
-                        每周
+                        {t('habits.weekly')}
                       </button>
                       <button
                         type="button"
@@ -215,7 +217,7 @@ const HabitForm: React.FC<HabitFormProps> = ({
                             : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400 hover:bg-purple-50'
                         }`}
                       >
-                        每月
+                        {t('habits.monthly')}
                       </button>
                     </div>
                   </FormControl>
@@ -229,14 +231,14 @@ const HabitForm: React.FC<HabitFormProps> = ({
                 control={form.control}
                 name="targetCount"
                 rules={{ 
-                  required: '目标次数不能为空',
-                  min: { value: 1, message: '目标次数必须大于0' },
-                  max: { value: selectedFrequency === 'weekly' ? 7 : 31, message: `目标次数不能超过${selectedFrequency === 'weekly' ? 7 : 31}` }
+                  required: t('habits.targetRequired'),
+                  min: { value: 1, message: t('habits.targetMin') },
+                  max: { value: selectedFrequency === 'weekly' ? 7 : 31, message: selectedFrequency === 'weekly' ? t('habits.targetMaxWeekly') : t('habits.targetMaxMonthly') }
                 }}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {selectedFrequency === 'weekly' ? '每周目标次数' : '每月目标次数'}
+                      {selectedFrequency === 'weekly' ? t('habits.weeklyTarget') : t('habits.monthlyTarget')}
                     </FormLabel>
                     <FormControl>
                       <Input 
@@ -257,15 +259,15 @@ const HabitForm: React.FC<HabitFormProps> = ({
               name="bindingRewardId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>绑定奖励（可选）</FormLabel>
+                  <FormLabel>{t('habits.bindReward')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value || 'none'}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="选择要绑定的奖励" />
+                        <SelectValue placeholder={t('habits.bindRewardPlaceholder')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">不绑定奖励</SelectItem>
+                      <SelectItem value="none">{t('habits.noBinding')}</SelectItem>
                       {rewards.map((reward) => (
                         <SelectItem key={reward.id} value={reward.id}>
                           {reward.name}
@@ -280,10 +282,10 @@ const HabitForm: React.FC<HabitFormProps> = ({
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleClose}>
-                取消
+                {t('habits.cancel')}
               </Button>
               <Button type="submit" className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600">
-                {isEditing ? '保存修改' : '创建习惯'}
+                {isEditing ? t('habits.save') : t('habits.create_action')}
               </Button>
             </DialogFooter>
           </form>

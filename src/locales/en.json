@@ -1,0 +1,272 @@
+{
+  "app": {
+    "title": "Habit Flywheel",
+    "subtitle": "Let every effort precisely nurture your goals"
+  },
+  "nav": {
+    "today": "Today's Habits",
+    "todayShort": "Today",
+    "habits": "Habit Management",
+    "habitsShort": "Habits",
+    "rewards": "Reward Management",
+    "rewardsShort": "Rewards",
+    "bindings": "Binding Management",
+    "bindingsShort": "Bindings",
+    "history": "History",
+    "historyShort": "History",
+    "settings": "Settings Center",
+    "settingsShort": "Settings"
+  },
+  "auth": {
+    "title": "Habit Flywheel",
+    "subtitle": "Let every effort precisely nurture your goals",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "emailPlaceholder": "your@email.com",
+    "passwordPlaceholder": "Enter password",
+    "createPasswordPlaceholder": "Create password (at least 6 characters)",
+    "confirmPasswordPlaceholder": "Enter password again",
+    "signInSuccess": "Sign in successful",
+    "signInSuccessDesc": "Welcome back to Habit Flywheel!",
+    "signUpSuccess": "Registration successful",
+    "signUpSuccessDesc": "Please check your email and click the confirmation link to complete registration",
+    "signInFailed": "Sign in failed",
+    "signUpFailed": "Registration failed",
+    "passwordMismatch": "Passwords don't match",
+    "passwordMismatchDesc": "Please make sure both passwords are the same",
+    "emailVerificationSuccess": "Email verification successful",
+    "emailVerificationSuccessDesc": "Your account has been successfully activated, welcome to Habit Flywheel!",
+    "verificationFailed": "Verification failed",
+    "verificationFailedDesc": "Email verification failed, please try signing in again",
+    "verifying": "Verifying...",
+    "verifyingDesc": "Verifying your email, please wait"
+  },
+  "today": {
+    "title": "Today's Habits",
+    "subtitle": "Focus on today, make every check-in full of achievement",
+    "checkIn": "🎯 Check In Now",
+    "completed": "✅ Completed (click to undo)",
+    "boundTo": "→ {{rewardName}}"
+  },
+  "habits": {
+    "title": "Habit Management",
+    "subtitle": "Manage your habits, let every small goal become a driving force for growth",
+    "add": "Add Habit",
+    "active": "Active Habits",
+    "archived": "Archived",
+    "all": "All Habits",
+    "activeDesc": "Ongoing habits",
+    "archivedDesc": "Archived habits",
+    "allDesc": "All habits",
+    "filterPlaceholder": "Select filter criteria",
+    "noHabits": "No habits yet",
+    "noHabitsDesc": "Click \"Add Habit\" to start your first habit!",
+    "boundReward": "Bound Reward",
+    "archive": "Archive",
+    "restore": "Restore",
+    "create": "Create New Habit",
+    "edit": "Edit Habit",
+    "name": "Habit Name",
+    "namePlaceholder": "e.g., Daily Reading",
+    "description": "Description (Optional)",
+    "descriptionPlaceholder": "Describe the specific content of this habit...",
+    "energyValue": "Energy Value",
+    "frequency": "Frequency",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "targetCount": "Target Count",
+    "weeklyTarget": "Weekly Target Count",
+    "monthlyTarget": "Monthly Target Count",
+    "bindReward": "Bind Reward (Optional)",
+    "bindRewardPlaceholder": "Select reward to bind",
+    "noBinding": "No reward binding",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "create_action": "Create Habit",
+    "nameRequired": "Habit name cannot be empty",
+    "energyRequired": "Energy value cannot be empty",
+    "energyMin": "Energy value must be greater than 0",
+    "energyMax": "Energy value cannot exceed 100",
+    "targetRequired": "Target count cannot be empty",
+    "targetMin": "Target count must be greater than 0",
+    "targetMaxWeekly": "Target count cannot exceed 7",
+    "targetMaxMonthly": "Target count cannot exceed 31"
+  },
+  "rewards": {
+    "title": "Reward Management",
+    "subtitle": "Set goals, light up dreams with energy",
+    "add": "Add Reward",
+    "redeemable": "Redeemable",
+    "redeemed": "Redeemed",
+    "all": "All Rewards",
+    "redeemableDesc": "Rewards that can be redeemed",
+    "redeemedDesc": "Already redeemed rewards",
+    "allDesc": "All rewards",
+    "filterPlaceholder": "Select filter criteria",
+    "list": "Reward List",
+    "noRewards": "No rewards yet",
+    "noRewardsDesc": "Click \"Add Reward\" to create your first reward!",
+    "progress": "Progress",
+    "redeemed_status": "Redeemed",
+    "redeem": "🎉 Redeem Now",
+    "keepGoing": "🎯 Keep Going",
+    "create": "Create New Reward",
+    "edit": "Edit Reward",
+    "name": "Reward Name",
+    "namePlaceholder": "e.g., Watch a Movie",
+    "description": "Description (Optional)",
+    "descriptionPlaceholder": "Describe the specific content of this reward...",
+    "energyCost": "Energy Cost",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "create_action": "Create Reward",
+    "nameRequired": "Reward name cannot be empty",
+    "energyRequired": "Energy cost cannot be empty",
+    "energyMin": "Energy cost must be greater than 0",
+    "energyMax": "Energy cost cannot exceed 1000"
+  },
+  "settings": {
+    "title": "Settings Center",
+    "subtitle": "Personalized settings for a better experience",
+    "userAccount": "User Account",
+    "userAccountDesc": "Click the avatar icon on the right to manage your account settings",
+    "notifications": "Notification Settings",
+    "pushNotifications": "Push Notifications",
+    "pushNotificationsDesc": "Receive habit reminders and achievement notifications",
+    "interface": "Interface Settings",
+    "darkMode": "Dark Mode",
+    "darkModeDesc": "Switch to dark theme",
+    "showProgress": "Show Progress Bar",
+    "showProgressDesc": "Display progress bars in reward cards",
+    "showStats": "Show Statistics",
+    "showStatsDesc": "Display today's statistics on homepage",
+    "language": "Language Settings",
+    "languageDesc": "Select your preferred language",
+    "dataManagement": "Data Management",
+    "exportData": "Export Data",
+    "importData": "Import Data",
+    "resetDefault": "Reset to Default",
+    "clearAllData": "Clear All Data",
+    "exportSuccess": "Data export successful",
+    "exportSuccessDesc": "Your data has been successfully exported to downloads folder",
+    "importSuccess": "Data import successful",
+    "importSuccessDesc": "Your data has been successfully imported",
+    "importFailed": "Import failed",
+    "importFailedDesc": "File format is incorrect, please check and try again",
+    "dataCleared": "Data cleared",
+    "dataClearedDesc": "All data has been successfully cleared",
+    "resetConfirm": "Are you sure you want to reset to default settings? This will restore sample data.",
+    "clearConfirm": "Are you sure you want to clear all data? This action cannot be undone!",
+    "resetSuccess": "Reset to default",
+    "resetSuccessDesc": "App has been reset to default state, sample data has been restored",
+    "dataBackupTip": "The data export function will save all your habits, rewards and completion records as a JSON file. Regular backup is recommended.",
+    "appInfo": "App Information",
+    "version": "Version",
+    "lastUpdate": "Last Update",
+    "developer": "Developer"
+  },
+  "common": {
+    "loading": "Loading...",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "energy": "Energy",
+    "progress": "Progress"
+  },
+  "welcome": {
+    "badge": "New Release",
+    "title": "Habit Flywheel: turn routines into a rewarding loop",
+    "subtitle": "Connect habits, energy, and rewards so every check-in fuels the next action.",
+    "primaryCta": "Get started",
+    "secondaryCta": "Explore key features",
+    "features": {
+      "title": "Why Habit Flywheel",
+      "subtitle": "Bring clarity to your routines and get instant feedback from rewards.",
+      "flywheel": {
+        "title": "Flywheel workflow",
+        "description": "Plan habits, collect energy, and redeem rewards to build momentum."
+      },
+      "rewards": {
+        "title": "Reward binding",
+        "description": "Link meaningful rewards to habit completion and see the payoff immediately."
+      },
+      "supabase": {
+        "title": "Secure with Supabase",
+        "description": "Supabase auth and row level security keep your data private and synced."
+      },
+      "pwa": {
+        "title": "Ready anywhere",
+        "description": "Install as a PWA to use Habit Flywheel offline on desktop or mobile."
+      }
+    },
+    "preview": {
+      "title": "Real-time energy snapshot",
+      "description": "A sample of energy gains and reward progress—your data updates with every check-in.",
+      "habitExample": "Study Deep Research",
+      "bindingExample": "Completing it adds 30 energy to the linked reward automatically.",
+      "progressTitle": "Weekly completion",
+      "energyTitle": "Available energy",
+      "disclaimer": "Preview data is illustrative; sign in to see your real dashboard."
+    },
+    "cta": {
+      "title": "Ready to spin up your habit flywheel?",
+      "subtitle": "Create an account, connect habits with rewards, and start building momentum today.",
+      "primary": "Create my account",
+      "secondary": "Learn about the Supabase stack"
+    },
+    "story": {
+      "title": "How does the Habit Flywheel work?",
+      "subtitle": "A repeatable system that links desire, habits, and the rewards you care about.",
+      "pillars": {
+        "title": "Two principles behind the flywheel",
+        "items": [
+          {
+            "title": "Validate the reward first",
+            "description": "Treat every reward as a hypothesis. Run challenges and track check-ins to see if it truly motivates you before investing time and money."
+          },
+          {
+            "title": "Bind habits to the reward",
+            "description": "Break the reward into daily habits and assign energy values so every action earns visible progress toward the payoff."
+          }
+        ]
+      },
+      "cycle": {
+        "title": "The flywheel cycle",
+        "steps": [
+          {
+            "title": "Name the desire",
+            "description": "Capture the reward you crave and treat it as a demand to be validated."
+          },
+          {
+            "title": "Design a challenge",
+            "description": "Time-box a challenge around it. Completion data tells you whether the reward is truly meaningful."
+          },
+          {
+            "title": "Bind habits",
+            "description": "Split the challenge into repeatable habits, each with an energy value you earn once finished."
+          },
+          {
+            "title": "Redeem the payoff",
+            "description": "When energy reaches the threshold, claim the reward and reinforce the loop."
+          }
+        ]
+      },
+      "narrative": {
+        "title": "Rooted in lived experience",
+        "paragraphs": [
+          "The author struggled with study plans and productivity systems that never answered whether the reward was worth the effort.",
+          "The habit flywheel reframes the process as a loop of desire, validation, execution, and reinforcement so every action maps to a tangible benefit.",
+          "Use it as a personal operating system where rewards, habits, and energy live in the same dashboard."
+        ],
+        "quote": "Only validated rewards deserve the habits you invest in",
+        "quoteCite": "Habit Flywheel product notes"
+      }
+    }
+  }
+}

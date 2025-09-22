@@ -15,6 +15,7 @@ import UserAccountPopover from '@/components/UserAccountPopover';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 import { useHabits, Habit } from '@/hooks/useHabits';
 import { useRewards, Reward } from '@/hooks/useRewards';
 import { useHabitCompletions } from '@/hooks/useHabitCompletions';
@@ -22,6 +23,7 @@ import { useHabitCompletions } from '@/hooks/useHabitCompletions';
 const Index = () => {
   const { showProgress, showStats, notifications } = useSettings();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { habits, loading: habitsLoading, createHabit, updateHabit, deleteHabit, checkInHabit, unCheckInHabit } = useHabits();
   const { rewards, loading: rewardsLoading, createReward, updateReward, deleteReward, redeemReward, optimisticAddEnergyToReward, rollbackAddEnergyToReward, optimisticSubtractEnergyFromReward, rollbackSubtractEnergyFromReward, refetch: refetchRewards } = useRewards();
   const { isCompletedToday, optimisticAddCompletion, rollbackAddCompletion, optimisticRemoveCompletion, rollbackRemoveCompletion, clearOptimisticRemoval, refetch: refetchCompletions } = useHabitCompletions();
@@ -101,12 +103,12 @@ const Index = () => {
 
   // 菜单项配置
   const menuItems = [
-    { id: 'today', label: '今日习惯', icon: Calendar, shortLabel: '今日' },
-    { id: 'habits', label: '习惯管理', icon: CheckCircle, shortLabel: '习惯' },
-    { id: 'rewards', label: '奖励管理', icon: Gift, shortLabel: '奖励' },
-    { id: 'bindings', label: '绑定管理', icon: Link2, shortLabel: '绑定' },
-    { id: 'history', label: '历史记录', icon: BarChart3, shortLabel: '历史' },
-    { id: 'settings', label: '设置中心', icon: Settings, shortLabel: '设置' }
+    { id: 'today', label: t('nav.today'), icon: Calendar, shortLabel: t('nav.todayShort') },
+    { id: 'habits', label: t('nav.habits'), icon: CheckCircle, shortLabel: t('nav.habitsShort') },
+    { id: 'rewards', label: t('nav.rewards'), icon: Gift, shortLabel: t('nav.rewardsShort') },
+    { id: 'bindings', label: t('nav.bindings'), icon: Link2, shortLabel: t('nav.bindingsShort') },
+    { id: 'history', label: t('nav.history'), icon: BarChart3, shortLabel: t('nav.historyShort') },
+    { id: 'settings', label: t('nav.settings'), icon: Settings, shortLabel: t('nav.settingsShort') }
   ];
 
   // 渲染今日习惯模块
@@ -116,8 +118,8 @@ const Index = () => {
     return (
       <div className="space-y-6 pt-6">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">今日习惯</h2>
-          <p className="text-gray-600 dark:text-gray-400">专注今天，让每一次打卡都充满成就感</p>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{t('today.title')}</h2>
+          <p className="text-gray-600 dark:text-gray-400">{t('today.subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -185,12 +187,12 @@ const Index = () => {
                         }
                       }}
                     >
-                      {isCompleted ? '✅ 已完成 (点击取消)' : '🎯 立即打卡'}
+                      {isCompleted ? t('today.completed') : t('today.checkIn')}
                     </Button>
                     
                     {boundReward && (
                       <div className="text-xs text-gray-500 dark:text-gray-400">
-                        → {boundReward.name}
+                        {t('today.boundTo', { rewardName: boundReward.name })}
                       </div>
                     )}
                   </div>
@@ -228,32 +230,32 @@ const Index = () => {
     const habitFilterOptions = [
       {
         value: 'active',
-        label: '活跃习惯',
+        label: t('habits.active'),
         icon: <Activity className="h-4 w-4" />,
         count: activeCount,
-        description: '正在进行的习惯'
+        description: t('habits.activeDesc')
       },
       {
         value: 'archived',
-        label: '已归档',
+        label: t('habits.archived'),
         icon: <Archive className="h-4 w-4" />,
         count: archivedCount,
-        description: '已归档的习惯'
+        description: t('habits.archivedDesc')
       },
       {
         value: 'all',
-        label: '全部习惯',
+        label: t('habits.all'),
         icon: <CheckCircle className="h-4 w-4" />,
         count: totalCount,
-        description: '所有习惯'
+        description: t('habits.allDesc')
       }
     ];
 
     return (
       <div className="space-y-6 pt-6">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">习惯管理</h2>
-          <p className="text-gray-600 dark:text-gray-400">管理您的习惯，让每一个小目标都成为成长的动力</p>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{t('habits.title')}</h2>
+          <p className="text-gray-600 dark:text-gray-400">{t('habits.subtitle')}</p>
         </div>
         
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
@@ -263,7 +265,7 @@ const Index = () => {
               onValueChange={setHabitFilter}
               options={habitFilterOptions}
               width="w-48"
-              placeholder="选择筛选条件"
+              placeholder={t('habits.filterPlaceholder')}
             />
           </div>
           <Button 
@@ -271,23 +273,23 @@ const Index = () => {
             onClick={() => setHabitFormOpen(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
-            添加习惯
+            {t('habits.add')}
           </Button>
         </div>
 
         <div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-            {habitFilter === 'active' && `活跃习惯 (${filteredHabits.length})`}
-            {habitFilter === 'archived' && `归档习惯 (${filteredHabits.length})`}
-            {habitFilter === 'all' && `全部习惯 (${filteredHabits.length})`}
+            {habitFilter === 'active' && `${t('habits.active')} (${filteredHabits.length})`}
+            {habitFilter === 'archived' && `${t('habits.archived')} (${filteredHabits.length})`}
+            {habitFilter === 'all' && `${t('habits.all')} (${filteredHabits.length})`}
           </h3>
           
           {filteredHabits.length === 0 ? (
             <Card className="p-8 dark:bg-gray-800 dark:border-gray-700">
               <div className="text-center text-gray-500 dark:text-gray-400">
                 <Target className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                <p>还没有习惯</p>
-                <p className="text-sm mt-2">点击"添加习惯"开始您的第一个习惯吧！</p>
+                <p>{t('habits.noHabits')}</p>
+                <p className="text-sm mt-2">{t('habits.noHabitsDesc')}</p>
               </div>
             </Card>
           ) : (
@@ -307,7 +309,7 @@ const Index = () => {
                             <div className="flex items-center space-x-2">
                               <h4 className="font-medium text-gray-900 dark:text-gray-100">{habit.name}</h4>
                               {habit.is_archived && (
-                                <Badge variant="secondary" className="text-xs">已归档</Badge>
+                                <Badge variant="secondary" className="text-xs">{t('habits.archived')}</Badge>
                               )}
                             </div>
                             {habit.description && (
@@ -346,7 +348,7 @@ const Index = () => {
                         
                         {boundReward && (
                           <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                            <div className="text-xs text-purple-600 dark:text-purple-400 mb-1">绑定奖励</div>
+                            <div className="text-xs text-purple-600 dark:text-purple-400 mb-1">{t('habits.boundReward')}</div>
                             <div className="text-sm font-medium text-purple-800 dark:text-purple-300">
                               {boundReward.name}
                             </div>
@@ -363,7 +365,7 @@ const Index = () => {
                             onClick={() => toggleArchiveHabit(habit.id)}
                             className="flex-1 dark:border-gray-600"
                           >
-                            {habit.is_archived ? '恢复' : '归档'}
+                            {habit.is_archived ? t('habits.restore') : t('habits.archive')}
                           </Button>
                         </div>
                       </div>
@@ -426,32 +428,32 @@ const Index = () => {
     const rewardFilterOptions = [
       {
         value: 'redeemable',
-        label: '可兑换',
+        label: t('rewards.redeemable'),
         icon: <Star className="h-4 w-4" />,
         count: redeemableCount,
-        description: '可以兑换的奖励'
+        description: t('rewards.redeemableDesc')
       },
       {
         value: 'redeemed',
-        label: '已兑换',
+        label: t('rewards.redeemed'),
         icon: <CheckCircle className="h-4 w-4" />,
         count: redeemedCount,
-        description: '已经兑换的奖励'
+        description: t('rewards.redeemedDesc')
       },
       {
         value: 'all',
-        label: '全部奖励',
+        label: t('rewards.all'),
         icon: <Gift className="h-4 w-4" />,
         count: totalRewardsCount,
-        description: '所有奖励'
+        description: t('rewards.allDesc')
       }
     ];
 
     return (
       <div className="space-y-6 pt-6">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">奖励管理</h2>
-          <p className="text-gray-600 dark:text-gray-400">设定目标，用能量点亮梦想</p>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{t('rewards.title')}</h2>
+          <p className="text-gray-600 dark:text-gray-400">{t('rewards.subtitle')}</p>
         </div>
         
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
@@ -461,7 +463,7 @@ const Index = () => {
               onValueChange={setRewardFilter}
               options={rewardFilterOptions}
               width="w-48"
-              placeholder="选择筛选条件"
+              placeholder={t('rewards.filterPlaceholder')}
             />
           </div>
           <Button 
@@ -469,21 +471,21 @@ const Index = () => {
             onClick={() => setRewardFormOpen(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
-            添加奖励
+            {t('rewards.add')}
           </Button>
         </div>
 
         <div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-            奖励列表 ({filteredRewards.length})
+            {t('rewards.list')} ({filteredRewards.length})
           </h3>
           
           {filteredRewards.length === 0 ? (
             <Card className="p-8 dark:bg-gray-800 dark:border-gray-700">
               <div className="text-center text-gray-500 dark:text-gray-400">
                 <Gift className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                <p>还没有奖励</p>
-                <p className="text-sm mt-2">点击"添加奖励"创建您的第一个奖励吧！</p>
+                <p>{t('rewards.noRewards')}</p>
+                <p className="text-sm mt-2">{t('rewards.noRewardsDesc')}</p>
               </div>
             </Card>
           ) : (
@@ -506,7 +508,7 @@ const Index = () => {
                               <h3 className="font-medium text-gray-900 dark:text-gray-100">{reward.name}</h3>
                               {reward.is_redeemed && (
                                 <Badge className="bg-green-100 text-green-800 border-green-200 text-xs dark:bg-green-800 dark:text-green-100">
-                                  已兑换
+                                  {t('rewards.redeemed_status')}
                                 </Badge>
                               )}
                             </div>
@@ -540,7 +542,7 @@ const Index = () => {
                         
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
-                            <span className="dark:text-gray-300">进度</span>
+                            <span className="dark:text-gray-300">{t('rewards.progress')}</span>
                             <span className="dark:text-gray-300">{Math.round(progress)}%</span>
                           </div>
                           {showProgress && (
@@ -558,18 +560,18 @@ const Index = () => {
                         
                         {reward.is_redeemed ? (
                           <Button variant="outline" className="w-full dark:border-gray-600" disabled>
-                            ✅ 已兑换
+                            ✅ {t('rewards.redeemed_status')}
                           </Button>
                         ) : canRedeem ? (
                           <Button 
                             className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
                             onClick={() => redeemReward(reward.id)}
                           >
-                            🎉 立即兑换
+                            {t('rewards.redeem')}
                           </Button>
                         ) : (
                           <Button variant="outline" className="w-full dark:border-gray-600">
-                            🎯 继续努力
+                            {t('rewards.keepGoing')}
                           </Button>
                         )}
                       </div>
@@ -647,13 +649,13 @@ const Index = () => {
               <Card className="dark:bg-gray-800 dark:border-gray-700">
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <span className="dark:text-gray-100">用户账户</span>
+                    <span className="dark:text-gray-100">{t('settings.userAccount')}</span>
                     <UserAccountPopover />
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    点击右侧头像图标管理您的账户设置
+                    {t('settings.userAccountDesc')}
                   </p>
                 </CardContent>
               </Card>
@@ -681,10 +683,10 @@ const Index = () => {
             <div className="text-center flex-1">
               <div className="text-2xl mb-2">🌟</div>
               <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100 leading-tight">
-                习惯飞轮
+                {t('app.title')}
               </h1>
               <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                让每一份努力<br />都精准浇灌你的目标
+                {t('app.subtitle')}
               </p>
             </div>
             

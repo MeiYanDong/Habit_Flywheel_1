@@ -1,0 +1,272 @@
+{
+  "app": {
+    "title": "ハビット・フライホイール",
+    "subtitle": "すべての努力があなたの目標を正確に育てる"
+  },
+  "nav": {
+    "today": "今日の習慣",
+    "todayShort": "今日",
+    "habits": "習慣管理",
+    "habitsShort": "習慣",
+    "rewards": "報酬管理",
+    "rewardsShort": "報酬",
+    "bindings": "バインド管理",
+    "bindingsShort": "バインド",
+    "history": "履歴",
+    "historyShort": "履歴",
+    "settings": "設定センター",
+    "settingsShort": "設定"
+  },
+  "auth": {
+    "title": "ハビット・フライホイール",
+    "subtitle": "すべての努力があなたの目標を正確に育てる",
+    "signIn": "ログイン",
+    "signUp": "登録",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "confirmPassword": "パスワード確認",
+    "emailPlaceholder": "your@email.com",
+    "passwordPlaceholder": "パスワードを入力",
+    "createPasswordPlaceholder": "パスワードを作成（6文字以上）",
+    "confirmPasswordPlaceholder": "パスワードを再入力",
+    "signInSuccess": "ログイン成功",
+    "signInSuccessDesc": "ハビット・フライホイールへようこそ！",
+    "signUpSuccess": "登録成功",
+    "signUpSuccessDesc": "メールを確認し、確認リンクをクリックして登録を完了してください",
+    "signInFailed": "ログイン失敗",
+    "signUpFailed": "登録失敗",
+    "passwordMismatch": "パスワードが一致しません",
+    "passwordMismatchDesc": "両方のパスワードが同じであることを確認してください",
+    "emailVerificationSuccess": "メール認証成功",
+    "emailVerificationSuccessDesc": "アカウントが正常にアクティベートされました。ハビット・フライホイールにようこそ！",
+    "verificationFailed": "認証失敗",
+    "verificationFailedDesc": "メール認証に失敗しました。再度ログインしてください",
+    "verifying": "認証中...",
+    "verifyingDesc": "メールアドレスを認証しています。お待ちください"
+  },
+  "today": {
+    "title": "今日の習慣",
+    "subtitle": "今日に集中し、すべてのチェックインを達成感で満たしましょう",
+    "checkIn": "🎯 今すぐチェックイン",
+    "completed": "✅ 完了（クリックで取り消し）",
+    "boundTo": "→ {{rewardName}}"
+  },
+  "habits": {
+    "title": "習慣管理",
+    "subtitle": "習慣を管理し、すべての小さな目標を成長の原動力にしましょう",
+    "add": "習慣を追加",
+    "active": "アクティブな習慣",
+    "archived": "アーカイブ済み",
+    "all": "すべての習慣",
+    "activeDesc": "進行中の習慣",
+    "archivedDesc": "アーカイブされた習慣",
+    "allDesc": "すべての習慣",
+    "filterPlaceholder": "フィルター条件を選択",
+    "noHabits": "まだ習慣がありません",
+    "noHabitsDesc": "「習慣を追加」をクリックして最初の習慣を始めましょう！",
+    "boundReward": "バインドされた報酬",
+    "archive": "アーカイブ",
+    "restore": "復元",
+    "create": "新しい習慣を作成",
+    "edit": "習慣を編集",
+    "name": "習慣名",
+    "namePlaceholder": "例：日々の読書",
+    "description": "説明（オプション）",
+    "descriptionPlaceholder": "この習慣の具体的な内容を説明してください...",
+    "energyValue": "エネルギー値",
+    "frequency": "頻度",
+    "daily": "毎日",
+    "weekly": "毎週",
+    "monthly": "毎月",
+    "targetCount": "目標回数",
+    "weeklyTarget": "週間目標回数",
+    "monthlyTarget": "月間目標回数",
+    "bindReward": "報酬をバインド（オプション）",
+    "bindRewardPlaceholder": "バインドする報酬を選択",
+    "noBinding": "報酬をバインドしない",
+    "cancel": "キャンセル",
+    "save": "変更を保存",
+    "create_action": "習慣を作成",
+    "nameRequired": "習慣名は空にできません",
+    "energyRequired": "エネルギー値は空にできません",
+    "energyMin": "エネルギー値は0より大きくなければなりません",
+    "energyMax": "エネルギー値は100を超えることはできません",
+    "targetRequired": "目標回数は空にできません",
+    "targetMin": "目標回数は0より大きくなければなりません",
+    "targetMaxWeekly": "目標回数は7を超えることはできません",
+    "targetMaxMonthly": "目標回数は31を超えることはできません"
+  },
+  "rewards": {
+    "title": "報酬管理",
+    "subtitle": "目標を設定し、エネルギーで夢を照らしましょう",
+    "add": "報酬を追加",
+    "redeemable": "交換可能",
+    "redeemed": "交換済み",
+    "all": "すべての報酬",
+    "redeemableDesc": "交換可能な報酬",
+    "redeemedDesc": "既に交換済みの報酬",
+    "allDesc": "すべての報酬",
+    "filterPlaceholder": "フィルター条件を選択",
+    "list": "報酬リスト",
+    "noRewards": "まだ報酬がありません",
+    "noRewardsDesc": "「報酬を追加」をクリックして最初の報酬を作成しましょう！",
+    "progress": "進捗",
+    "redeemed_status": "交換済み",
+    "redeem": "🎉 今すぐ交換",
+    "keepGoing": "🎯 頑張り続けよう",
+    "create": "新しい報酬を作成",
+    "edit": "報酬を編集",
+    "name": "報酬名",
+    "namePlaceholder": "例：映画を観る",
+    "description": "説明（オプション）",
+    "descriptionPlaceholder": "この報酬の具体的な内容を説明してください...",
+    "energyCost": "エネルギーコスト",
+    "cancel": "キャンセル",
+    "save": "変更を保存",
+    "create_action": "報酬を作成",
+    "nameRequired": "報酬名は空にできません",
+    "energyRequired": "エネルギーコストは空にできません",
+    "energyMin": "エネルギーコストは0より大きくなければなりません",
+    "energyMax": "エネルギーコストは1000を超えることはできません"
+  },
+  "settings": {
+    "title": "設定センター",
+    "subtitle": "パーソナライズされた設定で、より良い体験を",
+    "userAccount": "ユーザーアカウント",
+    "userAccountDesc": "右側のアバターアイコンをクリックしてアカウント設定を管理してください",
+    "notifications": "通知設定",
+    "pushNotifications": "プッシュ通知",
+    "pushNotificationsDesc": "習慣リマインダーと達成通知を受信",
+    "interface": "インターフェース設定",
+    "darkMode": "ダークモード",
+    "darkModeDesc": "ダークテーマに切り替え",
+    "showProgress": "進捗バーを表示",
+    "showProgressDesc": "報酬カードに進捗バーを表示",
+    "showStats": "統計を表示",
+    "showStatsDesc": "ホームページに今日の統計を表示",
+    "language": "言語設定",
+    "languageDesc": "お好みの言語を選択してください",
+    "dataManagement": "データ管理",
+    "exportData": "データをエクスポート",
+    "importData": "データをインポート",
+    "resetDefault": "デフォルトにリセット",
+    "clearAllData": "すべてのデータをクリア",
+    "exportSuccess": "データエクスポート成功",
+    "exportSuccessDesc": "データがダウンロードフォルダーに正常にエクスポートされました",
+    "importSuccess": "データインポート成功",
+    "importSuccessDesc": "データが正常にインポートされました",
+    "importFailed": "インポート失敗",
+    "importFailedDesc": "ファイル形式が正しくありません。確認してから再試行してください",
+    "dataCleared": "データをクリア",
+    "dataClearedDesc": "すべてのデータが正常にクリアされました",
+    "resetConfirm": "デフォルト設定にリセットしてもよろしいですか？これによりサンプルデータが復元されます。",
+    "clearConfirm": "すべてのデータをクリアしてもよろしいですか？この操作は元に戻せません！",
+    "resetSuccess": "デフォルトにリセット",
+    "resetSuccessDesc": "アプリがデフォルト状態にリセットされ、サンプルデータが復元されました",
+    "dataBackupTip": "データエクスポート機能は、すべての習慣、報酬、完了記録をJSONファイルとして保存します。定期的なバックアップをお勧めします。",
+    "appInfo": "アプリ情報",
+    "version": "バージョン",
+    "lastUpdate": "最終更新",
+    "developer": "開発者"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "edit": "編集",
+    "delete": "削除",
+    "confirm": "確認",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "energy": "エネルギー",
+    "progress": "進捗"
+  },
+  "welcome": {
+    "badge": "新しい体験",
+    "title": "Habit Flywheel：習慣とご褒美で回る成長サイクル",
+    "subtitle": "エネルギー値とご褒美を結びつけ、毎日のチェックインを次の行動につなげます。",
+    "primaryCta": "今すぐ始める",
+    "secondaryCta": "主な機能を見る",
+    "features": {
+      "title": "Habit Flywheel が選ばれる理由",
+      "subtitle": "アイデアから実践まで、習慣とご褒美の管理を一つの画面で。",
+      "flywheel": {
+        "title": "フライホイール型の習慣管理",
+        "description": "習慣を設定し、エネルギーを貯め、ご褒美を発動して好循環を作ります。"
+      },
+      "rewards": {
+        "title": "ご褒美のバインディング",
+        "description": "重要な報酬を習慣の達成度に紐づけ、投資とリターンを可視化します。"
+      },
+      "supabase": {
+        "title": "Supabase による安全なデータ",
+        "description": "Supabase の認証と行レベルセキュリティで、データはあなた専用です。"
+      },
+      "pwa": {
+        "title": "PWA 対応",
+        "description": "オフライン・インストール対応で、スマホでもデスクトップでもすぐアクセス。"
+      }
+    },
+    "preview": {
+      "title": "リアルタイムのエネルギー可視化",
+      "description": "打刻で増えるエネルギーや報酬進捗のサンプル。実際の数値はあなたの習慣に合わせて変化します。",
+      "habitExample": "Deep Research を学習",
+      "bindingExample": "完了すると報酬に 30 エネルギーを自動追加",
+      "progressTitle": "今週の達成率",
+      "energyTitle": "利用可能なエネルギー",
+      "disclaimer": "画面はデモです。実データはサインイン後のダッシュボードで確認できます。"
+    },
+    "cta": {
+      "title": "習慣のフライホイールを回し始めましょう",
+      "subtitle": "アカウントを作成して習慣と報酬を紐づけ、今日から継続をデザイン。",
+      "primary": "無料で始める",
+      "secondary": "Supabase の仕組みを見る"
+    },
+    "story": {
+      "title": "Habit Flywheel はこうして回ります",
+      "subtitle": "欲求を確かめ、習慣に落とし込み、ご褒美で締めくくる再現可能なシステム。",
+      "pillars": {
+        "title": "フライホイールを支える二つの原則",
+        "items": [
+          {
+            "title": "まずご褒美を検証する",
+            "description": "欲しいご褒美を仮説と見なし、チャレンジと打刻で本当に自分を動かす価値があるか確かめます。"
+          },
+          {
+            "title": "習慣とご褒美を結びつける",
+            "description": "チャレンジを日々の習慣に分解し、エネルギー値を設定。行動するたびにご褒美へ近づく感覚を得ます。"
+          }
+        ]
+      },
+      "cycle": {
+        "title": "フライホイールの流れ",
+        "steps": [
+          {
+            "title": "欲求を言語化",
+            "description": "手に入れたいご褒美を書き出し、検証すべき需要として扱います。"
+          },
+          {
+            "title": "チャレンジを設計",
+            "description": "期間を区切ったチャレンジを設定し、達成度からご褒美の価値を判断します。"
+          },
+          {
+            "title": "習慣へ分解",
+            "description": "チャレンジを反復可能な習慣に分け、完了時に獲得するエネルギーを決めます。"
+          },
+          {
+            "title": "ご褒美を発動",
+            "description": "十分なエネルギーが貯まったらご褒美を実行し、行動と報酬のループを強化します。"
+          }
+        ]
+      },
+      "narrative": {
+        "title": "体験から生まれたモデル",
+        "paragraphs": [
+          "著者は学習や執筆の習慣化に挑む中で、欲求の確証と継続的なフィードバックが欠けていると気づきました。",
+          "そこで「習慣＋エネルギー＋ご褒美」というループを設計し、投資した行動が必ず手ごたえにつながる仕組みを構築しました。",
+          "重要なご褒美と習慣、エネルギーを一つのダッシュボードで管理する個人 OS として使ってみてください。"
+        ],
+        "quote": "検証されたご褒美だけが、あなたの習慣を受け取るに値する",
+        "quoteCite": "Habit Flywheel プロダクトノート"
+      }
+    }
+  }
+}

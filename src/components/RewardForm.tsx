@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from '@/components/ui/form';
+import { useTranslation } from 'react-i18next';
 
 interface RewardFormData {
   name: string;
@@ -40,6 +41,7 @@ const RewardForm: React.FC<RewardFormProps> = ({
   initialData,
   isEditing = false
 }) => {
+  const { t } = useTranslation();
   const form = useForm<RewardFormData>({
     defaultValues: {
       name: '',
@@ -81,7 +83,7 @@ const RewardForm: React.FC<RewardFormProps> = ({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? '编辑奖励' : '创建新奖励'}
+            {isEditing ? t('rewards.edit') : t('rewards.create')}
           </DialogTitle>
         </DialogHeader>
         
@@ -90,12 +92,12 @@ const RewardForm: React.FC<RewardFormProps> = ({
             <FormField
               control={form.control}
               name="name"
-              rules={{ required: '奖励名称不能为空' }}
+              rules={{ required: t('rewards.nameRequired') }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>奖励名称</FormLabel>
+                  <FormLabel>{t('rewards.name')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="例如：iPhone 15 Pro" {...field} />
+                    <Input placeholder={t('rewards.namePlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -107,10 +109,10 @@ const RewardForm: React.FC<RewardFormProps> = ({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>描述（可选）</FormLabel>
+                  <FormLabel>{t('rewards.description')}</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="描述这个奖励的具体内容..."
+                      placeholder={t('rewards.descriptionPlaceholder')}
                       className="resize-none"
                       {...field}
                     />
@@ -124,13 +126,13 @@ const RewardForm: React.FC<RewardFormProps> = ({
               control={form.control}
               name="energyCost"
               rules={{ 
-                required: '能量消耗不能为空',
-                min: { value: 1, message: '能量消耗必须大于0' },
-                max: { value: 10000, message: '能量消耗不能超过10000' }
+                required: t('rewards.energyRequired'),
+                min: { value: 1, message: t('rewards.energyMin') },
+                max: { value: 1000, message: t('rewards.energyMax') }
               }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>能量消耗</FormLabel>
+                  <FormLabel>{t('rewards.energyCost')}</FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
@@ -146,10 +148,10 @@ const RewardForm: React.FC<RewardFormProps> = ({
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleClose}>
-                取消
+                {t('rewards.cancel')}
               </Button>
               <Button type="submit" className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600">
-                {isEditing ? '保存修改' : '创建奖励'}
+                {isEditing ? t('rewards.save') : t('rewards.create_action')}
               </Button>
             </DialogFooter>
           </form>

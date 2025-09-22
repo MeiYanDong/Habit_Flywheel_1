@@ -1,20 +1,15 @@
 /// <reference types="vite/client" />
 
-// PWA 虚拟模块类型声明
+// PWA 虚拟模块类型声明，直接复用官方类型定义以避免漂移
 declare module 'virtual:pwa-register/react' {
-  import type { Ref, StateUpdater } from 'react'
-  
-  export interface RegisterSWOptions {
-    immediate?: boolean
-    onNeedRefresh?: () => void
-    onOfflineReady?: () => void
-    onRegistered?: (registration: ServiceWorkerRegistration | undefined) => void
-    onRegisterError?: (error: any) => void
-  }
+  import type { Dispatch, SetStateAction } from 'react'
+  import type { RegisterSWOptions } from 'vite-plugin-pwa/types'
+
+  export type { RegisterSWOptions }
 
   export function useRegisterSW(options?: RegisterSWOptions): {
-    needRefresh: [boolean, StateUpdater<boolean>]
-    offlineReady: [boolean, StateUpdater<boolean>]
+    needRefresh: [boolean, Dispatch<SetStateAction<boolean>>]
+    offlineReady: [boolean, Dispatch<SetStateAction<boolean>>]
     updateServiceWorker: (reloadPage?: boolean) => Promise<void>
   }
 }

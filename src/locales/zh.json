@@ -1,0 +1,272 @@
+{
+  "app": {
+    "title": "习惯飞轮",
+    "subtitle": "让每一份努力都精准浇灌你的目标"
+  },
+  "nav": {
+    "today": "今日习惯",
+    "todayShort": "今日",
+    "habits": "习惯管理",
+    "habitsShort": "习惯",
+    "rewards": "奖励管理",
+    "rewardsShort": "奖励",
+    "bindings": "绑定管理",
+    "bindingsShort": "绑定",
+    "history": "历史记录",
+    "historyShort": "历史",
+    "settings": "设置中心",
+    "settingsShort": "设置"
+  },
+  "auth": {
+    "title": "习惯飞轮",
+    "subtitle": "让每一份努力都精准浇灌你的目标",
+    "signIn": "登录",
+    "signUp": "注册",
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "emailPlaceholder": "your@email.com",
+    "passwordPlaceholder": "输入密码",
+    "createPasswordPlaceholder": "创建密码（至少6位）",
+    "confirmPasswordPlaceholder": "再次输入密码",
+    "signInSuccess": "登录成功",
+    "signInSuccessDesc": "欢迎回到习惯飞轮！",
+    "signUpSuccess": "注册成功",
+    "signUpSuccessDesc": "请检查您的邮箱并点击确认链接完成注册",
+    "signInFailed": "登录失败",
+    "signUpFailed": "注册失败",
+    "passwordMismatch": "密码不匹配",
+    "passwordMismatchDesc": "请确保两次输入的密码相同",
+    "emailVerificationSuccess": "邮箱验证成功",
+    "emailVerificationSuccessDesc": "您的账户已成功激活，欢迎使用习惯飞轮！",
+    "verificationFailed": "验证失败",
+    "verificationFailedDesc": "邮箱验证失败，请重试登录",
+    "verifying": "验证中...",
+    "verifyingDesc": "正在验证您的邮箱，请稍候"
+  },
+  "today": {
+    "title": "今日习惯",
+    "subtitle": "专注今天，让每一次打卡都充满成就感",
+    "checkIn": "🎯 立即打卡",
+    "completed": "✅ 已完成 (点击取消)",
+    "boundTo": "→ {{rewardName}}"
+  },
+  "habits": {
+    "title": "习惯管理",
+    "subtitle": "管理您的习惯，让每一个小目标都成为成长的动力",
+    "add": "添加习惯",
+    "active": "活跃习惯",
+    "archived": "已归档",
+    "all": "全部习惯",
+    "activeDesc": "正在进行的习惯",
+    "archivedDesc": "已归档的习惯",
+    "allDesc": "所有习惯",
+    "filterPlaceholder": "选择筛选条件",
+    "noHabits": "还没有习惯",
+    "noHabitsDesc": "点击\"添加习惯\"开始您的第一个习惯吧！",
+    "boundReward": "绑定奖励",
+    "archive": "归档",
+    "restore": "恢复",
+    "create": "创建新习惯",
+    "edit": "编辑习惯",
+    "name": "习惯名称",
+    "namePlaceholder": "例如：每日阅读",
+    "description": "描述（可选）",
+    "descriptionPlaceholder": "描述这个习惯的具体内容...",
+    "energyValue": "能量值",
+    "frequency": "频率",
+    "daily": "每日",
+    "weekly": "每周",
+    "monthly": "每月",
+    "targetCount": "目标次数",
+    "weeklyTarget": "每周目标次数",
+    "monthlyTarget": "每月目标次数",
+    "bindReward": "绑定奖励（可选）",
+    "bindRewardPlaceholder": "选择要绑定的奖励",
+    "noBinding": "不绑定奖励",
+    "cancel": "取消",
+    "save": "保存修改",
+    "create_action": "创建习惯",
+    "nameRequired": "习惯名称不能为空",
+    "energyRequired": "能量值不能为空",
+    "energyMin": "能量值必须大于0",
+    "energyMax": "能量值不能超过100",
+    "targetRequired": "目标次数不能为空",
+    "targetMin": "目标次数必须大于0",
+    "targetMaxWeekly": "目标次数不能超过7",
+    "targetMaxMonthly": "目标次数不能超过31"
+  },
+  "rewards": {
+    "title": "奖励管理",
+    "subtitle": "设定目标，用能量点亮梦想",
+    "add": "添加奖励",
+    "redeemable": "可兑换",
+    "redeemed": "已兑换",
+    "all": "全部奖励",
+    "redeemableDesc": "可以兑换的奖励",
+    "redeemedDesc": "已经兑换的奖励",
+    "allDesc": "所有奖励",
+    "filterPlaceholder": "选择筛选条件",
+    "list": "奖励列表",
+    "noRewards": "还没有奖励",
+    "noRewardsDesc": "点击\"添加奖励\"创建您的第一个奖励吧！",
+    "progress": "进度",
+    "redeemed_status": "已兑换",
+    "redeem": "🎉 立即兑换",
+    "keepGoing": "🎯 继续努力",
+    "create": "创建新奖励",
+    "edit": "编辑奖励",
+    "name": "奖励名称",
+    "namePlaceholder": "例如：看一部电影",
+    "description": "描述（可选）",
+    "descriptionPlaceholder": "描述这个奖励的具体内容...",
+    "energyCost": "能量消耗",
+    "cancel": "取消",
+    "save": "保存修改",
+    "create_action": "创建奖励",
+    "nameRequired": "奖励名称不能为空",
+    "energyRequired": "能量消耗不能为空",
+    "energyMin": "能量消耗必须大于0",
+    "energyMax": "能量消耗不能超过1000"
+  },
+  "settings": {
+    "title": "设置中心",
+    "subtitle": "个性化设置，让体验更贴心",
+    "userAccount": "用户账户",
+    "userAccountDesc": "点击右侧头像图标管理您的账户设置",
+    "notifications": "通知设置",
+    "pushNotifications": "推送通知",
+    "pushNotificationsDesc": "接收习惯提醒和成就通知",
+    "interface": "界面设置",
+    "darkMode": "深色模式",
+    "darkModeDesc": "切换到深色主题",
+    "showProgress": "显示进度条",
+    "showProgressDesc": "在奖励卡片中显示进度条",
+    "showStats": "显示统计数据",
+    "showStatsDesc": "在主页显示今日统计",
+    "language": "语言设置",
+    "languageDesc": "选择您的首选语言",
+    "dataManagement": "数据管理",
+    "exportData": "导出数据",
+    "importData": "导入数据",
+    "resetDefault": "重置默认",
+    "clearAllData": "清除所有数据",
+    "exportSuccess": "数据导出成功",
+    "exportSuccessDesc": "您的数据已成功导出到下载文件夹",
+    "importSuccess": "数据导入成功",
+    "importSuccessDesc": "您的数据已成功导入",
+    "importFailed": "导入失败",
+    "importFailedDesc": "文件格式不正确，请检查后重试",
+    "dataCleared": "数据已清除",
+    "dataClearedDesc": "所有数据已成功清除",
+    "resetConfirm": "确定要重置为默认设置吗？这将恢复示例数据。",
+    "clearConfirm": "确定要清除所有数据吗？此操作不可恢复！",
+    "resetSuccess": "已重置为默认",
+    "resetSuccessDesc": "应用已重置为默认状态，示例数据已恢复",
+    "dataBackupTip": "数据导出功能会将您的所有习惯、奖励和完成记录保存为JSON文件，建议定期备份。",
+    "appInfo": "应用信息",
+    "version": "版本",
+    "lastUpdate": "最后更新",
+    "developer": "开发者"
+  },
+  "common": {
+    "loading": "加载中...",
+    "edit": "编辑",
+    "delete": "删除",
+    "confirm": "确认",
+    "cancel": "取消",
+    "save": "保存",
+    "energy": "能量",
+    "progress": "进度"
+  },
+  "welcome": {
+    "badge": "全新版本",
+    "title": "习惯飞轮：让习惯和奖励形成正向循环",
+    "subtitle": "通过能量值和奖励绑定，把每一次打卡都转化为持续的动力。",
+    "primaryCta": "立即开始",
+    "secondaryCta": "了解主要功能",
+    "features": {
+      "title": "为什么选择习惯飞轮",
+      "subtitle": "从理念到落地，一站式完成习惯与奖励管理。",
+      "flywheel": {
+        "title": "飞轮式习惯管理",
+        "description": "设定习惯、累积能量、触发奖励，让行为形成闭环。"
+      },
+      "rewards": {
+        "title": "奖励绑定",
+        "description": "将关键奖励绑定到习惯完成度，及时看到投入与回报。"
+      },
+      "supabase": {
+        "title": "Supabase 安全数据",
+        "description": "使用 Supabase 认证与行级安全，确保数据只属于你。"
+      },
+      "pwa": {
+        "title": "PWA 随时使用",
+        "description": "支持离线与桌面安装，手机或电脑都能快速访问。"
+      }
+    },
+    "preview": {
+      "title": "即时的能量反馈",
+      "description": "打卡能量值、奖励占比与进度示例。真实数据会根据你的习惯动态变化。",
+      "habitExample": "学习 Deep Research",
+      "bindingExample": "完成后自动为奖励累积 30 点能量",
+      "progressTitle": "本周完成率",
+      "energyTitle": "可用能量",
+      "disclaimer": "示例界面仅为预览，实际数据以你的账号为准。"
+    },
+    "cta": {
+      "title": "准备好让习惯真正转起来了吗？",
+      "subtitle": "注册账户，创建习惯并绑定奖励，今天就开始塑造自我驱动的飞轮。",
+      "primary": "免费开始使用",
+      "secondary": "查看 Supabase 支持文档"
+    },
+    "story": {
+      "title": "习惯飞轮是如何落地的？",
+      "subtitle": "从确认需求到兑现奖励，一套可复用的生活系统。",
+      "pillars": {
+        "title": "两大原则支撑这套飞轮",
+        "items": [
+          {
+            "title": "验证奖励是否值得",
+            "description": "先把想要的奖励当作假设，通过挑战和打卡来验证它是否真的能激励自己，从源头过滤掉不必要的投入。"
+          },
+          {
+            "title": "让习惯与奖励绑定",
+            "description": "把奖励拆成可执行的习惯，并设置能量值，使每一次行动都能看见回报，从而形成正向循环。"
+          }
+        ]
+      },
+      "cycle": {
+        "title": "飞轮流程",
+        "steps": [
+          {
+            "title": "明确欲望",
+            "description": "记录心中想得到的奖励，把它视作待验证的需求。"
+          },
+          {
+            "title": "设计挑战",
+            "description": "为奖励安排限定时间的挑战，通过完成情况判断它是否值得追求。"
+          },
+          {
+            "title": "绑定习惯",
+            "description": "将挑战拆分成日常习惯，配上对应的能量值，完成即累积。"
+          },
+          {
+            "title": "兑现回报",
+            "description": "当能量达到门槛时兑换奖励，巩固“行动—收益”的反馈。"
+          }
+        ]
+      },
+      "narrative": {
+        "title": "它来自真实的实践",
+        "paragraphs": [
+          "作者在不断尝试学习、写作和提升效率时，意识到缺乏真实的欲望验证和持续的正反馈。",
+          "于是他提出“习惯 + 能量 + 奖励”的闭环模型，让每一次投入都能对应一份可感知的回报。",
+          "你可以把它当作一个个人操作系统，把重要的奖励、习惯和能量管理在同一个界面里。"
+        ],
+        "quote": "只有被验证过的奖励，才值得用习惯去换取",
+        "quoteCite": "《习惯飞轮》产品笔记"
+      }
+    }
+  }
+}

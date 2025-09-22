@@ -43,10 +43,10 @@ const Auth = () => {
           });
           
           // 清除URL中的认证参数
-          window.history.replaceState({}, document.title, '/');
+          window.history.replaceState({}, document.title, '/auth');
           
           // 导航到主页
-          navigate('/');
+          navigate('/app');
         } catch (error) {
           console.error('Authentication callback error:', error);
           toast({
@@ -64,7 +64,7 @@ const Auth = () => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session && !window.location.hash) {
-        navigate('/');
+        navigate('/app');
       }
     };
 
@@ -84,7 +84,7 @@ const Auth = () => {
     }
 
     setLoading(true);
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/auth`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -129,7 +129,7 @@ const Auth = () => {
         title: "登录成功",
         description: "欢迎回到习惯飞轮！",
       });
-      navigate('/');
+      navigate('/app');
     }
     setLoading(false);
   };

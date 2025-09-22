@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Download, Upload, Trash2, RotateCcw, Bell, Palette, Database } from 'lucide-react';
+import { Download, Upload, Trash2, RotateCcw, Bell, Palette, Database, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '@/components/LanguageSelector';
 
 interface SettingsCenterProps {
   onExportData: () => void;
@@ -23,6 +25,7 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
   onResetToDefaults
 }) => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const {
     notifications,
     darkMode,
@@ -47,13 +50,13 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
             const data = JSON.parse(e.target?.result as string);
             onImportData(data);
             toast({
-              title: "数据导入成功",
-              description: "您的数据已成功导入",
+              title: t('settings.importSuccess'),
+              description: t('settings.importSuccessDesc'),
             });
           } catch (error) {
             toast({
-              title: "导入失败",
-              description: "文件格式不正确，请检查后重试",
+              title: t('settings.importFailed'),
+              description: t('settings.importFailedDesc'),
               variant: "destructive",
             });
           }
@@ -67,28 +70,28 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
   const handleExport = () => {
     onExportData();
     toast({
-      title: "数据导出成功",
-      description: "您的数据已成功导出到下载文件夹",
+      title: t('settings.exportSuccess'),
+      description: t('settings.exportSuccessDesc'),
     });
   };
 
   const handleClearData = () => {
-    if (window.confirm('确定要清除所有数据吗？此操作不可恢复！')) {
+    if (window.confirm(t('settings.clearConfirm'))) {
       onClearAllData();
       toast({
-        title: "数据已清除",
-        description: "所有数据已成功清除",
+        title: t('settings.dataCleared'),
+        description: t('settings.dataClearedDesc'),
         variant: "destructive",
       });
     }
   };
 
   const handleReset = () => {
-    if (window.confirm('确定要重置为默认设置吗？这将恢复示例数据。')) {
+    if (window.confirm(t('settings.resetConfirm'))) {
       onResetToDefaults();
       toast({
-        title: "已重置为默认",
-        description: "应用已重置为默认状态，示例数据已恢复",
+        title: t('settings.resetSuccess'),
+        description: t('settings.resetSuccessDesc'),
       });
     }
   };
@@ -96,8 +99,8 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
   return (
     <div className="space-y-6 pt-6">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">设置中心</h2>
-        <p className="text-gray-600 dark:text-gray-400">个性化设置，让体验更贴心</p>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{t('settings.title')}</h2>
+        <p className="text-gray-600 dark:text-gray-400">{t('settings.subtitle')}</p>
       </div>
 
       {/* 通知设置 */}
@@ -105,14 +108,14 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Bell className="h-5 w-5 text-purple-600" />
-            <span className="dark:text-gray-100">通知设置</span>
+            <span className="dark:text-gray-100">{t('settings.notifications')}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="notifications" className="dark:text-gray-200">推送通知</Label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">接收习惯提醒和成就通知</p>
+              <Label htmlFor="notifications" className="dark:text-gray-200">{t('settings.pushNotifications')}</Label>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.pushNotificationsDesc')}</p>
             </div>
             <Switch
               id="notifications"
@@ -128,14 +131,14 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Palette className="h-5 w-5 text-purple-600" />
-            <span className="dark:text-gray-100">界面设置</span>
+            <span className="dark:text-gray-100">{t('settings.interface')}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="darkMode" className="dark:text-gray-200">深色模式</Label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">切换到深色主题</p>
+              <Label htmlFor="darkMode" className="dark:text-gray-200">{t('settings.darkMode')}</Label>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.darkModeDesc')}</p>
             </div>
             <Switch
               id="darkMode"
@@ -146,8 +149,8 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
 
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="showProgress" className="dark:text-gray-200">显示进度条</Label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">在奖励卡片中显示进度条</p>
+              <Label htmlFor="showProgress" className="dark:text-gray-200">{t('settings.showProgress')}</Label>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.showProgressDesc')}</p>
             </div>
             <Switch
               id="showProgress"
@@ -158,8 +161,8 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
 
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="showStats" className="dark:text-gray-200">显示统计数据</Label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">在主页显示今日统计</p>
+              <Label htmlFor="showStats" className="dark:text-gray-200">{t('settings.showStats')}</Label>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('settings.showStatsDesc')}</p>
             </div>
             <Switch
               id="showStats"
@@ -170,12 +173,25 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
         </CardContent>
       </Card>
 
+      {/* 语言设置 */}
+      <Card className="dark:bg-gray-800 dark:border-gray-700">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Globe className="h-5 w-5 text-purple-600" />
+            <span className="dark:text-gray-100">{t('settings.language')}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <LanguageSelector />
+        </CardContent>
+      </Card>
+
       {/* 数据管理 */}
       <Card className="dark:bg-gray-800 dark:border-gray-700">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Database className="h-5 w-5 text-purple-600" />
-            <span className="dark:text-gray-100">数据管理</span>
+            <span className="dark:text-gray-100">{t('settings.dataManagement')}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -186,7 +202,7 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
               className="flex items-center space-x-2 dark:border-gray-600 dark:text-gray-200"
             >
               <Download className="h-4 w-4" />
-              <span>导出数据</span>
+              <span>{t('settings.exportData')}</span>
             </Button>
 
             <Button
@@ -195,7 +211,7 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
               className="flex items-center space-x-2 dark:border-gray-600 dark:text-gray-200"
             >
               <Upload className="h-4 w-4" />
-              <span>导入数据</span>
+              <span>{t('settings.importData')}</span>
             </Button>
 
             <Button
@@ -204,7 +220,7 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
               className="flex items-center space-x-2 dark:border-gray-600 dark:text-gray-200"
             >
               <RotateCcw className="h-4 w-4" />
-              <span>重置默认</span>
+              <span>{t('settings.resetDefault')}</span>
             </Button>
 
             <Button
@@ -213,13 +229,13 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
               className="flex items-center space-x-2 text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-900"
             >
               <Trash2 className="h-4 w-4" />
-              <span>清除所有数据</span>
+              <span>{t('settings.clearAllData')}</span>
             </Button>
           </div>
 
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg dark:bg-amber-900/20 dark:border-amber-700">
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              <strong>提示：</strong> 数据导出功能会将您的所有习惯、奖励和完成记录保存为JSON文件，建议定期备份。
+              <strong>{t('common.confirm')}：</strong> {t('settings.dataBackupTip')}
             </p>
           </div>
         </CardContent>
@@ -228,19 +244,19 @@ const SettingsCenter: React.FC<SettingsCenterProps> = ({
       {/* 应用信息 */}
       <Card className="dark:bg-gray-800 dark:border-gray-700">
         <CardHeader>
-          <CardTitle className="dark:text-gray-100">应用信息</CardTitle>
+          <CardTitle className="dark:text-gray-100">{t('settings.appInfo')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">版本</span>
-                            <Badge variant="secondary">v2.9.0</Badge>
+            <span className="text-gray-600 dark:text-gray-400">{t('settings.version')}</span>
+            <Badge variant="secondary">v2.9.0</Badge>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">最后更新</span>
-                            <span className="text-sm dark:text-gray-300">2025-07-10</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('settings.lastUpdate')}</span>
+            <span className="text-sm dark:text-gray-300">2025-07-10</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">开发者</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('settings.developer')}</span>
             <span className="text-sm dark:text-gray-300">梅炎栋</span>
           </div>
         </CardContent>
